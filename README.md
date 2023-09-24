@@ -4,9 +4,10 @@ Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
 | [Webpage](https://www.huiwang.me/projects/10_project/) | [Full Paper](https://www.huiwang.me/assets/pdf/2023SMI.pdf) | [Publication Page](https://doi.org/10.1016/j.cag.2023.05.024) |<br>
 ![Teaser image](assets/teaser.png)
 
-This repository contains the implementation associated with the paper "Discrete Orthogonal Structures", which can be found [here](https://doi.org/10.1016/j.cag.2023.05.024). 
-
 Abstract: *To represent smooth geometric shapes by coarse polygonal meshes, visible edges often follow special families of curves on a surface to achieve visually pleasing results. Important examples of such families are principal curvature lines, asymptotic lines or geodesics. In a surprisingly big amount of use-cases, these curves form an orthogonal net. While the condition of orthogonality between smooth curves on a surface is straightforward, the discrete counterpart, namely orthogonal quad meshes, is not. In this paper, we study the definition of discrete orthogonality based on equal diagonal lengths in every quadrilateral. We embed this definition in the theory of discrete differential geometry and highlight its benefits for practical applications. We demonstrate the versatility of this approach by combining discrete orthogonality with other classical constraints known from discrete differential geometry. Orthogonal multi-nets, i.e. meshes where discrete orthogonality holds on any parameter rectangle, receive an in-depth analysis.*
+
+This repository contains the implementation associated with the paper "Discrete Orthogonal Structures", which can be found [here](https://doi.org/10.1016/j.cag.2023.05.024). 
+Please cite the paper if you use this code in your project.
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
@@ -25,22 +26,20 @@ Abstract: *To represent smooth geometric shapes by coarse polygonal meshes, visi
 </section>
 
 
-
-
 ## Instructions to set up a working environment in Windows / MacOS
 
 Using Anaconda to install every package.
 
     1. Download Anaconda
 
-    2. Open Anaconda Prompt in Windows searching
+    2. Open Anaconda Prompt
     ```
     $ conda create -n geo 
     $ conda activate geo
     $ conda install mayavi traits traitsui qt pyqt vtk scipy spyder 
     $ conda install -c haasad pypardiso
     ```
-    3. Open Anaconda, under geo environment open Spyder
+    3. Open Anaconda, under "geo" environment open Spyder
 
 Once above installation failed because of versions conflict, then try below installations:
 
