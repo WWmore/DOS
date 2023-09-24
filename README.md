@@ -60,16 +60,19 @@ Or use the exported files within ```./conda/``` to set your environment
     ```
 
 
+## Files relations
+
+![File](assets/files.png)
+
 <details>
 <summary><span style="font-weight: bold;">Files instruction.</span></summary>
     1. files in geometrylab folder are basic, nothing need to be changed.
 
     2. if want to test how it works, try python files in geometrylab/test: ex. run paneling.py, then a GUI window will be opened.
 
-    3. if want to add a new project, create a new folder named 'archgeolab'. the mesh geometry, optimization and GUI will be based on the files in geometrylab.
+    3. if want to add a new project, can create a new folder similar to the folder 'archgeolab'. the mesh geometry, optimization and GUI will be based on the files in geometrylab.
 
-    4. archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> project folder (proj_orthonet)
-
-    5. archgeolab/proj_orthonet: guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
+    4. archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
+    
 </details>
 <br>

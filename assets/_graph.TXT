@@ -1,0 +1,15 @@
+
+
+
+graph LR
+    A[meshpy.py] --> B([geometry])
+    B --> C([geometrylab])
+    A --> D[quadring.py]
+    D --> E([archgeogeometry])
+    E --> F([archgeolab])
+    F --> G[guidedprojection_orthonet.py]
+    G --> H[opt_gui_orthonet.py]
+    H --> I[readfile_orthonet.py]
+    J([objs]) --> I
+    C --> E
+    K([constraints]) --> F
