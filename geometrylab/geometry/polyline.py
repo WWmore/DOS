@@ -164,11 +164,6 @@ class Polyline(object):
         N = N / np.linalg.norm(N, axis=1, keepdims=True)
         return N
 
-    def vertex_normals(self):
-        from geometrylab.optimization.combnormals import comb_normals
-        N = comb_normals(self)
-        return N
-
     def vertex_bisectors(self, return_cosines=False):
         v0 = np.arange(self.V)
         v2 = np.roll(v0,1)

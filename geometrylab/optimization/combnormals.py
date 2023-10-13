@@ -16,10 +16,6 @@ from scipy import sparse
 
 from geometrylab import utilities
 
-from geometrylab.geometry import Frame
-
-from geometrylab.geometry import Circle
-
 from geometrylab.optimization.guidedprojectionbase import GuidedProjectionBase
 
 # -----------------------------------------------------------------------------

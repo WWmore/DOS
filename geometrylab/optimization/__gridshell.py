@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 
 # -*- coding: utf-8 -*-
-__author__ = 'Hui Wang'
-#------------------------------------------------------------------------------
+
+from __future__ import absolute_import
+
+from __future__ import print_function
+
+from __future__ import division
+
 import copy
 
 import numpy as np
@@ -21,22 +26,25 @@ from geometrylab import utilities
 
 from archgeolab.archgeometry.quadrings import MMesh # Hui
 
-from archgeolab.constraints.constraints_basic import column3D,con_bigger_than
-
-from archgeolab.constraints.constraints_fairness import con_laplacian_fairness,con_fair_midpoint
-
+try: 
+    from archgeolab.constraints.constraints_basic import column3D,con_bigger_than
+    from archgeolab.constraints.constraints_fairness import con_laplacian_fairness,con_fair_midpoint
+except:
+    pass
 #------------------------------------------------------------------------------
-""" forcked from geometrylab/optimization/gridshell.py
-Hui add: 
+"""Hui add: 
     smooth_quadface_data; 
     con_fairness,con_selected_polyline_fairness,con_selected_polylines_fairness,
     con_curve_fold_fairness,con_mesh_fairness,con_boundary_fairness,
     con_tangential_fairness,con_diagonal_mesh_fairness,con_corner_fairness
     
-    meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> project folder
+    meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py + geolabgui.py
 """
 
-'''self.mesh calls functions from ProjectFolder: guidedprojection_ + opt_gui_'''
+'''self.mesh called functions from guidedprojection + opt'''
+
+__author__ = 'Davide Pellis + Hui Wang'
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #                               Gridshell
@@ -177,6 +185,7 @@ class Gridshell(MMesh):  # Hui
             return np.unique(fix)
         else:
             return self.__fixed_vertices
+        #print('gridshell.py:', self.__fixed_vertices)
 
     @fixed_vertices.setter
     def fixed_vertices(self, vertex_indices):
@@ -394,6 +403,7 @@ class Gridshell(MMesh):  # Hui
     def fix(self, vertex_indices):
         v = np.array(vertex_indices, dtype=np.int)
         self.__fixed_vertices = np.unique(np.hstack((v, self.__fixed_vertices)))
+        #print('gridshell.py:', v)
 
     def unfix(self, vertex_indices):
         mask = np.in1d(self.__fixed_vertices, vertex_indices)

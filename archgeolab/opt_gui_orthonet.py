@@ -124,7 +124,7 @@ class OrthoNet(GeolabComponent):
     
     reinitialize = Button(label='ini')
     optimize = Button(label='Opt')
-    interactive = Bool(False, label='Interactive')
+    interactive = Bool(False, label='InteractiveOpt')
     hide_face = Bool(label='HideF')
     hide_edge = Bool(label='HideE')    
     ####----------------------------------------------------------------------- 
@@ -300,7 +300,7 @@ class OrthoNet(GeolabComponent):
                show_border=True,label='Closeness'),
                 
          VGroup(HGroup('weight_fix'),
-                HGroup(#'hide_face','hide_edge',
+                HGroup(
                        'fix_all',
                        'fix_boundary',
                        'fix_boundary_i',
@@ -334,12 +334,11 @@ class OrthoNet(GeolabComponent):
              layout='tabbed'),  
              #----------------
              HGroup(Item('interactive',
-                         tooltip='Interactive',
-                         show_label=False,),
+                         tooltip='InteractiveOptimization',),
                     Item('_'),
-                    'optimize','reinitialize',
+                    Item('optimize',show_label=False),
+                    Item('reinitialize',show_label=False),
                     'hide_face','hide_edge',
-                    show_labels=False,
                     show_border=False),     
          #----------------    
          show_labels=False,
@@ -1376,13 +1375,13 @@ class OrthoNet(GeolabComponent):
 
     @on_trait_change('optimize')
     def optimize_mesh(self):
-        import time
-        start_time = time.time()
+        #import time
+        #start_time = time.time()
         itera = self.itera_run
         self.meshmanager.iterate(self.optimization_step, itera) # note:iterations from gpbase.py
         self.meshmanager.update_plot()
         
-        print('time[s] per iteration:','%.3g s' %((time.time() - start_time)/itera))
+        #print('time[s] per iteration:','%.3g s' %((time.time() - start_time)/itera))
             
     @on_trait_change('interactive')
     def interactive_optimize_mesh(self):

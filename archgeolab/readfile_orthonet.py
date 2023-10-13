@@ -4,13 +4,21 @@ Created on Sun Dec 18 22:16:21 2022
 
 @author: WANGH0M
 """
+
+# All rights reserved.
+#
+# This software is free for non-commercial, research and evaluation use 
+# under the terms of the LICENSE.md file.
+#
+# For inquiries contact hui.wang.1@kaust.edu.sa
+
 #------------------------------------------------------------------------------
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 import sys
 
-path = os.path.dirname(os.path.abspath(__file__))
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.append(path)
 
@@ -33,6 +41,7 @@ if __name__ == '__main__':
     
     
     file = equ + r'\quad_dome.obj'
+    file = anet + r'\knet1.obj'
 
     #----------------------------------------
 

@@ -8,36 +8,31 @@ from __future__ import print_function
 
 from __future__ import division
 
-import os
+import os, sys
 
-import sys
+from traits.api import Button, Bool, Int, on_trait_change
 
-from traits.api import Enum, Button, Str, Float, Bool, Int, Array, Range, Color
-
-from traits.api import on_trait_change
-
-from traitsui.api import View, Item, HGroup, Group, Tabbed, VGroup
-
-from traitsui.api import ArrayEditor, EnumEditor, CheckListEditor
+from traitsui.api import View, Item, VGroup
 
 import numpy as np
 
 #------------------------------------------------------------------------------
 
-sys.path.append('/Users\Davide\OneDrive\MeshPy\geometrylab03')
-
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# print(path)
+sys.path.append(path)
+                
 import geometrylab as geo
 
 #------------------------------------------------------------------------------
 
-'''Sample component for GeoLab.
-Notes:
-    - random plots are shown. At each update, colors are recomputed
+''' Sample component for GeoLab.
+__author__ = 'Davide Pellis'
 
-
+Hui note: archgeolab refers to this class; if want to make new one, refer here!
 '''
 
-__author__ = 'Davide Pellis'
+
 
 
 #------------------------------------------------------------------------------
@@ -47,7 +42,7 @@ __author__ = 'Davide Pellis'
 #------------------------------------------------------------------------------
 
 
-class WeingartenPaneling(geo.gui.GeolabComponent):
+class Paneling(geo.gui.GeolabComponent):
 
     name = 'Paneling'
 
@@ -326,7 +321,7 @@ file_name = path + '/tri_dome.obj'
 if __name__ == '__main__':
 
     '''Instantiate the sample component'''
-    component = WeingartenPaneling()
+    component = Paneling()
 
     '''Instantiate the main geolab application'''
     GUI = geo.gui.GeolabGUI()

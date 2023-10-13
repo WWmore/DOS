@@ -31,7 +31,6 @@ from geometrylab import utilities
 
 __author__ = 'Davide Pellis'
 
-
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #                               Gridshell
@@ -105,7 +104,7 @@ class Gridshell(Mesh):
 
     @property
     def vertices_0(self):
-        if self._vertices_0 is None:
+        if self._vertices_0 == None:
             self._vertices_0 = np.copy(self.vertices)
         return np.copy(self._vertices_0)
 
@@ -119,14 +118,14 @@ class Gridshell(Mesh):
 
     @handle.setter
     def handle(self, vertex_index):
-        if vertex_index is None:
+        if vertex_index == None:
             self._handle = np.array([], dtype=np.int)
         else:
             self._handle = np.array(vertex_index, dtype=np.int)
 
     @property
     def force_densities(self):
-        if self._force_densities is None:
+        if self._force_densities == None:
             self.lsqr_force_densities()
         densities = np.copy(self._force_densities)
         return densities
@@ -142,7 +141,7 @@ class Gridshell(Mesh):
 
     @property
     def applied_forces(self):
-        if self._applied_forces is None:
+        if self._applied_forces == None:
             self._applied_forces = np.zeros((self.V, 3), dtype=np.float)
         forces = np.copy(self._applied_forces)
         return forces
@@ -159,14 +158,14 @@ class Gridshell(Mesh):
 
     @property
     def fixed_vertices(self):
-        if self.__fixed_vertices is None:
+        if self.__fixed_vertices == None:
             self.__fixed_vertices = np.array([], dtype=np.int)
-        if self._fixed_vertices is None:
+        if self._fixed_vertices == None:
             return self.__fixed_vertices
-        elif self._fixed_vertices is 'boundary':
+        elif self._fixed_vertices == 'boundary':
             fix = np.hstack((self.__fixed_vertices, self.boundary_vertices()))
             return np.unique(fix)
-        elif self._fixed_vertices is 'constrained':
+        elif self._fixed_vertices == 'constrained':
             fix = np.hstack((self.__fixed_vertices, self.constrained_vertices))
             return np.unique(fix)
         else:
@@ -174,23 +173,23 @@ class Gridshell(Mesh):
 
     @fixed_vertices.setter
     def fixed_vertices(self, vertex_indices):
-        if vertex_indices is 'constrained':
+        if vertex_indices == 'constrained':
             self._fixed_vertices = 'constrained'
-        elif vertex_indices is 'boundary':
+        elif vertex_indices == 'boundary':
             self._fixed_vertices = 'boundary'
-        elif vertex_indices is None:
+        elif vertex_indices == None:
             self._fixed_vertices = None
         else:
             self.__fixed_vertices = vertex_indices
 
     @property
     def constrained_vertices(self):
-        if self.__constrained_vertices is None:
+        if self.__constrained_vertices == None:
             self.__constrained_vertices = np.array([], dtype=np.int)
-        if self._constrained_vertices is None:
+        if self._constrained_vertices == None:
             self.__constrained_vertices = np.array([], dtype=np.int)
             return self.__constrained_vertices
-        elif self._constrained_vertices is 'boundary':
+        elif self._constrained_vertices == 'boundary':
             constrained = np.hstack((self.__constrained_vertices,
                                      self.boundary_vertices()))
             return np.unique(constrained)
@@ -199,9 +198,9 @@ class Gridshell(Mesh):
 
     @constrained_vertices.setter
     def constrained_vertices(self, vertex_indices):
-        if vertex_indices is 'boundary':
+        if vertex_indices == 'boundary':
             self._constrained_vertices = 'boundary'
-        elif vertex_indices is None:
+        elif vertex_indices == None:
             self._constrained_vertices = None
         else:
             self.__constrained_vertices = vertex_indices
@@ -209,14 +208,14 @@ class Gridshell(Mesh):
 
     @property
     def gliding_vertices(self):
-        if self.__gliding_vertices is None:
+        if self.__gliding_vertices == None:
             self.__gliding_vertices = np.array([], dtype=np.int)
-        if self._gliding_vertices is None:
+        if self._gliding_vertices == None:
             return self.__gliding_vertices
-        elif self._gliding_vertices is 'constrained':
+        elif self._gliding_vertices == 'constrained':
             gli = np.hstack((self.__gliding_vertices, self.constrained_vertices))
             return np.unique(gli)
-        elif self._gliding_vertices is 'boundary':
+        elif self._gliding_vertices == 'boundary':
             gli = np.hstack((self.__gliding_vertices, self.boundary_vertices()))
             return np.unique(gli)
         else:
@@ -224,18 +223,18 @@ class Gridshell(Mesh):
 
     @gliding_vertices.setter
     def gliding_vertices(self, gliding_vertices):
-        if gliding_vertices is 'constrained':
+        if gliding_vertices == 'constrained':
             self._fixed_vertices = 'constrained'
-        elif gliding_vertices is 'boundary':
+        elif gliding_vertices == 'boundary':
             self._gliding_vertices = 'boundary'
-        elif gliding_vertices is None:
+        elif gliding_vertices == None:
             self._gliding_vertices = None
         else:
             self.__gliding_vertices = gliding_vertices
 
     @property
     def gliding_curves(self):
-        if self._gliding_curves is None:
+        if self._gliding_curves == None:
             self.update_boundary()
         return self._gliding_curves
 
@@ -419,7 +418,7 @@ class Gridshell(Mesh):
         return P
 
     def lsqr_force_densities(self, dumped=True):
-        if self._force_densities is None:
+        if self._force_densities == None:
             E = self.E
             constrained = self.constrained_vertices
             v0, vj = self.vertex_ring_vertices_iterators(sort=True)
