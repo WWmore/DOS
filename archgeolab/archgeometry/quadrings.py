@@ -4,7 +4,7 @@ Created on Sun Dec 18 22:16:21 2022
 
 @author: WANGH0M
 """
-__author__ = 'Hui'
+__author__ = 'Hui Wang'
 #------------------------------------------------------------------------------
 import numpy as np
 #------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ from archgeolab.archgeometry.curves import mesh_polylines,make_polyline_from_end
 """
 forked and built on geometrylab/geometry/meshpy.py
 
-meshpy.py --> quadrings.py --> gridshell.py(GeolabGUI)--> gui_basic.py -->
+meshpy.py --> quadrings.py --> gridshell_new.py(GeolabGUI)--> gui_basic.py -->
 guidedprojection_net.py + opt_orthonet.py --> read_file
 """
 #------------------------------------------------------------------------------

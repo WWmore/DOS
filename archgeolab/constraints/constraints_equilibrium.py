@@ -21,8 +21,7 @@ edge_length_constraints
 equilibrium_constraints,
 compression_constraints,
 area_constraints,
-vector_area_constraints,
-circularity_constraints
+vector_area_constraints
 
 boundary_densities_constraints
 fixed_boundary_normals_constraints
@@ -74,44 +73,6 @@ def planarity_constraints(**kwargs): ## replaced by Hui's constraint
     H = sparse.coo_matrix((data,(i,j)), shape=(K, N))
     #self.add_iterative_constraint(H, r, 'face_normal (planarity)')
     print('pq:', np.sum(np.square((H*X)-r)))
-    return H,r
-
-def circularity_constraints(**kwargs):
-    "note:  based on self.circularity=True (N4)"
-    w = kwargs.get('circularity')
-    mesh = kwargs.get('mesh')
-    V = mesh.V
-    F = mesh.F
-    N = kwargs.get('N')
-    N3 = kwargs.get('N3')
-    X = kwargs.get('X')
-    f, v1, v2 = mesh.face_edge_vertices_iterators(order=True)
-    K = f.shape[0]
-    cx = N3 + np.array(f)
-    cy = N3 + np.array(f) + F
-    cz = N3 + np.array(f) + 2*F
-    v1x = np.array(v1)
-    v1y = np.array(V + v1)
-    v1z = np.array(2*V + v1)
-    v2x = np.array(v2)
-    v2y = np.array(V + v2)
-    v2z = np.array(2*V + v2)
-    jx = np.hstack((v1x, v2x, cx))
-    jy = np.hstack((v1y, v2y, cy))
-    jz = np.hstack((v1z, v2z, cz))
-    datax = np.hstack((X[v1x] - X[cx], -X[v2x] + X[cx], -X[v1x] + X[v2x]))
-    rx = 0.5*X[v1x]**2 - 0.5*X[v2x]**2 -X[v1x]*X[cx] + X[v2x]*X[cx]
-    datay = np.hstack((X[v1y] - X[cy], -X[v2y] + X[cy], -X[v1y] + X[v2y]))
-    ry = 0.5*X[v1y]**2 - 0.5*X[v2y]**2 -X[v1y]*X[cy] + X[v2y]*X[cy]
-    dataz = np.hstack((X[v1z] - X[cz], -X[v2z] + X[cz], -X[v1z] + X[v2z]))
-    rz = 0.5*X[v1z]**2 - 0.5*X[v2z]**2 -X[v1z]*X[cz] + X[v2z]*X[cz]
-    i = np.arange(K)
-    i = np.hstack((i,i,i,i,i,i,i,i,i))
-    j = np.hstack((jx, jy, jz))
-    data = np.hstack((datax, datay, dataz)) * w
-    r = (rx + ry + rz) * w
-    H = sparse.coo_matrix((data,(i,j)), shape=(K, N))
-    #self.add_iterative_constraint(H, r,'circularity')
     return H,r
 
 # -------------------------------------------------------------------------

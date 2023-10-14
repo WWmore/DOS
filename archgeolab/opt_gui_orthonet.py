@@ -87,8 +87,6 @@ class OrthoNet(GeolabComponent):
     sharp_corner = Bool(label='SharpCor')
     
     self_closeness = Float(0,label='selfC')
-
-    avoid_shrinkage = Float(0,label='NoSmaller')
     
     set_refer_mesh = Bool(label='SetRefer')
     show_refer_mesh = Bool(label='ShowRefer')
@@ -147,24 +145,14 @@ class OrthoNet(GeolabComponent):
 
     button_principal_mesh = Button(label='PrincipalMesh')
     planarity = Bool(label='PQ')
-    circular_mesh = Bool(label='CircularM')
-    conical_mesh = Bool(label='ConicalM') #TODO
-    
-    button_opt_PPO = Button(label='OrthoPP')
-    set_another_poly = Range(low=0, high=1, value=0,label='_1st|2nd_Poly')
-    opt_planar_polyline1 = Bool(label='PlanarPly1')
-    opt_planar_polyline2 = Bool(label='PlanarPly2')
     
     button_funicularity = Button(label='OrthoFunicular')
     equilibrium = Bool(label='Equilibrium') #equilibrium with vertical load
-    
-    #button_principal_stress = Button(label='PrincipalStress') #TODO
+
     button_Multinets_Orthogonal = Button(label='Multinets-Orthogonal')
     multinets_orthogonal = Bool(label='multinets-orthogonal')
     # if_set_weight = Bool(False)
     weigth_multinets_orthogonal = Float(label='weight.MO')
-    
-    button_ortho_planarPolyline_funicularity = Button(label='O+P+F')
     
     #--------------Plotting: -----------------------------
     show_isogonal_face_based_vector = Bool(label='F-Vec')
@@ -174,19 +162,12 @@ class OrthoNet(GeolabComponent):
     show_midpoint_polyline2 = Bool(label='Ply2')
     show_midline_mesh = Bool(label='ReMesh')
 
-    show_planar_poly1_normal = Bool(label='Ply1-N')
-    show_planar_poly1_plane= Bool(label='Ply1-Pln')
-    show_planar_poly2_normal = Bool(label='Ply2-N')
-    show_planar_poly2_plane = Bool(label='Ply2-Pln')   
-
     show_vs_sphere = Bool(label='VS-Sphere')
     show_snet_center = Bool(label='Snet-C')
     show_snet_normal = Bool(label='Snet-N')
     show_snet_tangent = Bool(label='Snet-T')
 
     show_multinets_diagonals = Bool(label='Multinets-Diagonals') 
-    
-    show_circumcircle = Bool(label='Circumcircle')
     
     print_error = Button(label='Error')
     #--------------Save: --------------------
@@ -205,11 +186,7 @@ class OrthoNet(GeolabComponent):
               #HGroup(Item('set_another_poly'),),    
               HGroup('orthogonal',),
               HGroup('planarity',
-                     'circular_mesh',
-                     'conical_mesh',
                      ),
-              HGroup('opt_planar_polyline1',
-                     'opt_planar_polyline2',),
               HGroup('Anet',
                      'Anet_diagnet',),
               HGroup('Snet',
@@ -219,17 +196,17 @@ class OrthoNet(GeolabComponent):
                      Item('if_uniqR',show_label=False),
                      'Snet_constR_assigned'),
               HGroup('equilibrium',
-                     'multinets_orthogonal',
-                     'weigth_multinets_orthogonal'),
+                     ),
               HGroup(Item('button_principal_mesh',show_label=False),
-                     Item('button_opt_PPO',show_label=False),
                      Item('button_minimal_mesh',show_label=False),
                      Item('button_CMC_mesh',show_label=False),
+                     Item('button_funicularity',show_label=False),
+                     Item('button_clear_constraint',show_label=False)
                      ),
-              HGroup(Item('button_funicularity',show_label=False),
-                     Item('button_ortho_planarPolyline_funicularity',show_label=False),
-                     Item('button_Multinets_Orthogonal',show_label=False),
-                     Item('button_clear_constraint',show_label=False)), 
+              HGroup(Item('button_Multinets_Orthogonal',show_label=False),
+                     'multinets_orthogonal',
+                     'weigth_multinets_orthogonal'
+                     ), 
         label='Opt',show_border=True),
         #------------------------------------------------  
         VGroup(HGroup('show_isogonal_face_based_vector',
@@ -238,15 +215,10 @@ class OrthoNet(GeolabComponent):
                       'show_midpoint_polyline1',
                       'show_midpoint_polyline2',
                       'show_midline_mesh'),
-              HGroup('show_planar_poly1_normal',
-                     'show_planar_poly2_normal',
-                     'show_planar_poly1_plane',
-                     'show_planar_poly2_plane'),
               HGroup('show_vs_sphere',
                      'show_snet_center',
                      'show_snet_tangent',
                      'show_snet_normal',),
-              HGroup('show_circumcircle'),
               HGroup('show_multinets_diagonals',), 
         label='Plotting',show_border=True),
         #------------------------------------------------  
@@ -272,7 +244,6 @@ class OrthoNet(GeolabComponent):
                HGroup('fairness_4diff',
                       'fairness_diag_4diff'),
                       'fairness_reduction',
-                      #'avoid_shrinkage',
                       'fairness_diagmesh',
                show_border=True,label='Fairness'),
         
@@ -892,8 +863,6 @@ class OrthoNet(GeolabComponent):
         self.planarity = False
         self.orthogonal = False
         self.equilibrium = False
-        self.circular_mesh = False
-        self.conical_mesh = False
 
         self.Anet = False
         self.Anet_diagnet = False
@@ -903,21 +872,12 @@ class OrthoNet(GeolabComponent):
         self.Snet_constR = False
         self.if_uniqR = False
         
-        self.opt_planar_polyline1 = False
-        self.opt_planar_polyline2 = False
-        
         self.multinets_orthogonal = False
         self.weigth_multinets_orthogonal = 0.0
         # self.if_set_weight = False
         
         self.optimizer.set_weight('unit_edge_vec', 0)
         self.optimizer.set_weight('unit_diag_edge_vec', 0)
-
-
-    @on_trait_change('button_opt_PPO')
-    def set_orthogonal_planar_ply12(self): 
-        self.orthogonal = True
-        self.opt_planar_polyline1,self.opt_planar_polyline2 = True, True
         
     @on_trait_change('button_minimal_mesh')
     def set_orthogonal_Anet(self): 
@@ -940,26 +900,6 @@ class OrthoNet(GeolabComponent):
     def set_funicularity(self): 
         self.orthogonal = True  
         self.equilibrium = True
-        
-    @on_trait_change('button_principal_stress')
-    def set_principal_stress(self): 
-        self.orthogonal = True  
-        self.opt_planar_polyline1 = True
-        #self.opt_planar_polyline2 = False ##or
-        self.equilibrium = True
-
-    @on_trait_change('button_ortho_planarPolyline_funicularity')
-    def set_planar_long_range_supporting_beams(self): 
-        self.orthogonal = True  
-        self.planarity = True
-        self.equilibrium = True    
-        
-    @on_trait_change('circular_mesh,conical_mesh')
-    def set_principal_meshes(self): 
-        if self.circular_mesh or self.conical_mesh:
-            self.planarity = True
-        else:
-            self.planarity = False
     
     @on_trait_change('button_Multinets_Orthogonal')
     def set_multinets_orthogonal(self):
@@ -1069,54 +1009,6 @@ class OrthoNet(GeolabComponent):
             
         else:
             self.meshmanager.remove([name+'1',name+'2'])  
-            
-    #---------------------------------------------------------        
-    #               Planar Polyline (PP) - Ploting
-    #---------------------------------------------------------
-    @on_trait_change('show_planar_poly1_normal')
-    def plot_polyline1_planar_normal(self):
-        name = 'ply1_n'
-        if self.show_planar_poly1_normal:  
-            an,vn = self.optimizer.get_mesh_planar_normal_or_plane(pl1=True)
-            self.meshmanager.plot_vectors(anchor=an,vectors=vn,position='tail',
-                                          color = 'r',name = name) 
-        else:
-            self.meshmanager.remove([name])  
-            
-    @on_trait_change('show_planar_poly2_normal')
-    def plot_polyline2_planar_normal(self):
-        name = 'ply2_n'
-        if self.show_planar_poly2_normal:  
-            an,vn = self.optimizer.get_mesh_planar_normal_or_plane(pl2=True)
-            self.meshmanager.plot_vectors(anchor=an,vectors=vn,position='tail',
-                                          color = 'r',name = name) 
-        else:
-            self.meshmanager.remove([name])  
-            
-    @on_trait_change('show_planar_poly1_plane')
-    def plot_polyline1_planar_plane(self):
-        name = 'ply1_pln'
-        if self.show_planar_poly1_plane:  
-            sm= self.optimizer.get_mesh_planar_normal_or_plane(pl1=True,pln=True)
-            showf = Faces(sm,glossy=0.5,opacity=0.7,
-                          color='black',name=name+'f')           
-            self.meshmanager.add([showf])
-            self.save_new_mesh = sm
-        else:
-            self.meshmanager.remove([name+'e',name+'f'])   
-            
-    @on_trait_change('show_planar_poly2_plane')
-    def plot_polyline2_planar_plane(self):
-        name = 'ply2_pln'
-        if self.show_planar_poly2_plane:  
-            sm= self.optimizer.get_mesh_planar_normal_or_plane(pl2=True,pln=True)
-            showf = Faces(sm,glossy=0.5,opacity=0.9,
-                          color='yellow',name=name+'f')           
-            self.meshmanager.add([showf])
-            self.save_new_mesh = sm
-        else:
-            self.meshmanager.remove([name+'e',name+'f'])   
-        
 
     #---------------------------------------------------------        
     #               Anet / Snet - Ploting
@@ -1174,28 +1066,6 @@ class OrthoNet(GeolabComponent):
                                           name=name+'2')
         else:
             self.meshmanager.remove([name+'1',name+'2'])  
-
-    @on_trait_change('show_snet_ss')
-    def plot_snet_support_structure(self):
-        name = 'snetss'
-        if self.show_snet_ss:
-            ss = self.mesh.get_both_support_structures_from_edges(
-                N=self.snet_normal,
-                dist=self.scale_dist_offset,
-                diagnet=self.Snet_diagnet,
-                is_central=self.is_middle_ss,
-                ss1=False,ss2=False)
-            data = ss.face_planarity()
-            print('planarity of strips max=','%.2g' % np.max(data))
-            val = 0.02#1e-4#
-            showf = Faces(ss, face_data = data,
-                          glossy=1,opacity=1,
-                          color='bwr',lut_range=[-val,val],#'-:0:+',
-                          name=name+'f')
-            showe = Edges(ss,color = 'black',name=name+'e')
-            self.meshmanager.add([showf,showe])
-        else:
-            self.meshmanager.remove([name+'e',name+'f'])
     
     @on_trait_change('show_vs_sphere')
     def plot_vertex_star_sphere(self):
@@ -1217,26 +1087,6 @@ class OrthoNet(GeolabComponent):
                 self.meshmanager.remove([name,name+'vi',name+'c'])
         else:
             print('Select a vertex first.')     
-            
-    @on_trait_change('show_circumcircle')
-    def plot_face_circum_circle(self):
-        name = 'circum'
-        if self.show_circumcircle:
-            cir = self.optimizer.face_circum_circles()
-            r = self.meshmanager.r
-            self.meshmanager.plot_polyline(polyline=cir,tube_radius=0.7*r,
-                                           color =(251,144,37),name=name)
-        else:
-            self.meshmanager.remove(name)
-    #---------------------------------------------------------        
-    #               Multinets diagonals - Ploting (Xinye)
-    #---------------------------------------------------------
-    # @on_trait_change('show_multinets_diagonal')
-    # def plot_multinets_diagonal(self):
-    # name = 'mul_nets_diag'
-    #  if self.show_multinets_diagonal:
-                
- 
 
     #--------------------------------------------------------------------------
     #                         Printing / Check
@@ -1302,7 +1152,6 @@ class OrthoNet(GeolabComponent):
         
         self.optimizer.add_weight('boundary_glide', self.boundary_glide)
         self.optimizer.add_weight('i_boundary_glide', self.i_boundary_glide)
-        self.optimizer.add_weight('avoid_shrinkage', self.avoid_shrinkage)
         self.optimizer.add_weight('fixed_vertices', self.weight_fix)
         self.optimizer.add_weight('fix_point',  self.fix_p_weight)
         self.optimizer.add_weight('fix_corners',  self.fix_corner)
@@ -1313,7 +1162,6 @@ class OrthoNet(GeolabComponent):
         # ---------------------------------------------------------------------
         self.optimizer.set_weight('planarity', self.planarity)
         self.optimizer.set_weight('orthogonal',  self.orthogonal*1)
-        self.optimizer.set_weight('circularity', self.circular_mesh)
         self.optimizer.set_weight('equilibrium',  self.equilibrium)
         
         self.optimizer.set_weight('Anet',  self.Anet)
@@ -1327,10 +1175,6 @@ class OrthoNet(GeolabComponent):
         self.optimizer.assigned_snet_radius = self.Snet_constR_assigned
         
         self.optimizer.set_weight('multinets_orthogonal', self.weigth_multinets_orthogonal)
-        
-        self.optimizer.set_another_polyline = self.set_another_poly
-        self.optimizer.set_weight('planar_ply1', self.opt_planar_polyline1)
-        self.optimizer.set_weight('planar_ply2', self.opt_planar_polyline2)
 
     @on_trait_change('print_error')
     def print_errors(self):

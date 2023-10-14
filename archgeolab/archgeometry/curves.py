@@ -4,7 +4,7 @@ Created on Wed Nov  2 12:55:43 2022
 
 @author: WANGH0M
 """
-__author__ = 'Hui'
+__author__ = 'Hui Wang'
 #---------------------------------------------------------------------------
 import numpy as np
 

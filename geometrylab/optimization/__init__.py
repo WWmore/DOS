@@ -4,5 +4,4 @@ from geometrylab.optimization.guidedprojectionbase import GuidedProjectionBase
 
 from geometrylab.optimization.guidedprojection import GuidedProjection
 
-#from geometrylab.optimization.gridshell import Gridshell
-##comment so as to work for archgeometry
+from geometrylab.optimization.gridshell import Gridshell

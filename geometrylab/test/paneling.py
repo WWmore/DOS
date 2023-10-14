@@ -58,8 +58,6 @@ class Paneling(geo.gui.GeolabComponent):
 
     generate_points_button = Button(label = 'generate points')
 
-    generate_bspline_button = Button(label = 'generate b-spline')
-
     generate_vectors_button = Button(label = 'generate vectors')
 
     make_dual_mesh_button = Button(label = 'make dual mesh')
@@ -75,8 +73,6 @@ class Paneling(geo.gui.GeolabComponent):
                        Item('do_something_button',
                             show_label=False),
                        Item('generate_points_button',
-                            show_label=False),
-                       Item('generate_bspline_button',
                             show_label=False),
                        Item('generate_vectors_button',
                             show_label=False),
@@ -205,15 +201,6 @@ class Paneling(geo.gui.GeolabComponent):
 
         self.initialize_points_plot_functions(obj)
 
-    @on_trait_change('generate_bspline_button')
-    def generate_bspline(self):
-        '''Make a random bspline geometry'''
-        P = geo.geometry.BSpline(control_points=np.random.random((5,3))*10 - 4)
-
-        '''Add the bspline to geolab. Since the name is not changing,
-        the object is replaced'''
-        self.geolab.add_object(P, name='bspline')
-
     @on_trait_change('generate_vectors_button')
     def generate_vectors(self):
         '''Generates random vectors on the current object vertices'''
@@ -248,7 +235,7 @@ class Paneling(geo.gui.GeolabComponent):
         dual meshes of the same primal will be replaced.'''
         name = obj.name + '_dual'
         self.geolab.add_object(G, name = name)
-        self.geolab.add_object(G, name = name + '_copy', scene = 'scene_1')
+        self.geolab.add_object(G, name = name + '_copy', scene = 'scene_1') ##Hui: to debug
         self.initialize_mesh_plot_functions(self.geolab.get_object(name))
         self.initialize_mesh_plot_functions(self.geolab.get_object(name+'_copy'))
         #self.geolab.get_scene('scene_1').parallel_projection()

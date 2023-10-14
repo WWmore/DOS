@@ -13,11 +13,10 @@ from scipy import sparse
 from archgeolab.constraints.constraints_basic import column3D,con_edge,\
     con_unit,con_constl,con_equal_length,\
     con_planarity,con_unit_normal,con_orient
-from archgeolab.archgeometry.quadrings import MMesh
 # -------------------------------------------------------------------------
 """
-from archgeolab.constraints.constraints_net import con_unit_edge,\
-    con_orthogonal_midline,con_planar_1familyof_polylines,\
+from archgeolab.constraints.constraints_net import 
+    con_unit_edge,con_orthogonal_midline,\
     con_anet,con_anet_diagnet,con_snet,con_snet_diagnet
 """
 #--------------------------------------------------------------------------
@@ -549,55 +548,6 @@ def con_snet_diagnet(orientrn,**kwargs):
         r = np.r_[r, rr * w2]
  
     return H*w,r*w
-
-def con_planar_1familyof_polylines(Npp,ver_poly_strip,is_parallxy_n=False,**kwargs):
-    """ refer: _con_agnet_planar_geodesic(ver_poly_strip,strong=True,**kwargs)
-    X +=[ni]
-    along each i-th polyline: ni * (vij-vik) = 0; k=j+1,j=0,...
-    refer: self.get_poly_strip_normal()
-    """
-    mesh = kwargs.get('mesh')
-    X = kwargs.get('X')
-    N = kwargs.get('N')
-
-    iall = ver_poly_strip
-    num = len(iall)
-    arr = Npp-3*num+np.arange(3*num)
-    c_nx,c_ny,c_nz = arr[:num],arr[num:2*num],arr[2*num:3*num]
-
-    col=row=data=r = np.array([])
-    k,i = 0,0
-    for iv in iall:
-        va,vb = iv[:-1],iv[1:]
-        m = len(va)
-        c_a = column3D(va,0,mesh.V)
-        c_b = column3D(vb,0,mesh.V)
-        c_ni = np.r_[np.tile(c_nx[i],m),np.tile(c_ny[i],m),np.tile(c_nz[i],m)]
-        coli = np.r_[c_a,c_b,c_ni]
-        rowi = np.tile(np.arange(m),9) + k
-        datai = np.r_[X[c_ni],-X[c_ni],X[c_a]-X[c_b]]
-        ri = np.einsum('ij,ij->i',X[c_ni].reshape(-1,3,order='F'),(X[c_a]-X[c_b]).reshape(-1,3,order='F'))
-        col = np.r_[col,coli]
-        row = np.r_[row,rowi]
-        data = np.r_[data,datai]
-        r = np.r_[r,ri]
-        k += m
-        i += 1
-    H = sparse.coo_matrix((data,(row,col)), shape=(k, N))
-    H1,r1 = con_unit(X,arr)
-    H = sparse.vstack((H,H1))
-    r = np.r_[r,r1]
-    
-    if is_parallxy_n:
-        "variable normals are parallel to xy plane: n[2]=0"
-        row = np.arange(num)
-        data = np.ones(num)
-        col = c_nz
-        r0 = np.zeros(num)
-        H0 = sparse.coo_matrix((data,(row,col)), shape=(num, N))  
-        H = sparse.vstack((H,H0))
-        r = np.r_[r,r0]
-    return H,r  
 
     #--------------------------------------------------------------------------
     #                       Multi-nets: 

@@ -21,7 +21,7 @@ from geometrylab import utilities
 
 from archgeolab.archgeometry.quadrings import MMesh # Hui
 
-from archgeolab.constraints.constraints_basic import column3D,con_bigger_than
+from archgeolab.constraints.constraints_basic import column3D
 
 from archgeolab.constraints.constraints_fairness import con_laplacian_fairness,con_fair_midpoint
 
@@ -33,7 +33,7 @@ Hui add:
     con_curve_fold_fairness,con_mesh_fairness,con_boundary_fairness,
     con_tangential_fairness,con_diagonal_mesh_fairness,con_corner_fairness
     
-    meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> project folder
+    meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> project folder
 """
 
 '''self.mesh calls functions from ProjectFolder: guidedprojection_ + opt_gui_'''
@@ -43,13 +43,13 @@ Hui add:
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-class Gridshell(MMesh):  # Hui
+class GridshellNew(MMesh):  # Hui
 
     def __init__(self, file_name=None):
         #Mesh.__init__(self)
         MMesh.__init__(self)  # Hui
 
-        self._constrained_vertices = 'boundary'
+        self._constrained_vertices = None #'boundary' ##Hui comment, otherwise bdry are glided
 
         self._gliding_vertices = 'constrained'
 
@@ -250,7 +250,7 @@ class Gridshell(MMesh):  # Hui
     # -------------------------------------------------------------------------
 
     def copy_gridshell(self):
-        copy_gridshell = Gridshell()
+        copy_gridshell = GridshellNew()
         copy_gridshell.__dict__ = copy.deepcopy(self.__dict__)
         return copy_gridshell
 
@@ -307,7 +307,7 @@ class Gridshell(MMesh):  # Hui
         self.force_densities = None
 
     def topology_update(self):
-        super(Gridshell, self).topology_update()
+        super(GridshellNew, self).topology_update()
         self._vertices_0 = None
         self.set_vertices_0()
         self.reset_forces()
@@ -321,7 +321,7 @@ class Gridshell(MMesh):  # Hui
         self._vertices_0 = np.copy(self.vertices)
 
     def read_obj_file(self, file_name):
-        super(Gridshell, self).read_obj_file(file_name)
+        super(GridshellNew, self).read_obj_file(file_name)
         self.initialize()
 
     # -------------------------------------------------------------------------
@@ -343,7 +343,7 @@ class Gridshell(MMesh):  # Hui
         # else:
         #     self.current_object.geometry.set_reference()
         #print('gridshell')    
-        self.reference_mesh = super(Gridshell, self).copy_mesh()
+        self.reference_mesh = super(GridshellNew, self).copy_mesh()
         self.set_boundary()
         #print(self.reference_mesh.V) # Hui check
 
@@ -1323,21 +1323,6 @@ class Gridshell(MMesh):  # Hui
         #self.add_iterative_constraint(K*w, s, 'fairness_diagmesh')    
         return K*w,s
 
-    def con_avoid_shrinkage_edge_length(self, **kwargs):
-        "(vi-vj)^2-ai^2=min^2"
-        X = kwargs.get('X')
-        N = kwargs.get('N')
-        Nel = kwargs.get('Nel')
-        w = kwargs.get('avoid_shrinkage')
-        v1, v2 = self.edge_vertices()
-        c_v1 = column3D(v1,0,self.V)
-        c_v2 = column3D(v2,0,self.V)
-        c_ai = Nel-self.E+np.arange(self.E)
-        minl = self.min_el**2
-        H,r = con_bigger_than(X,minl,c_v1,c_v2,c_ai,self.E,N)
-        #self.add_iterative_constraint(H*w, r*w, 'avoid_shrinkage')
-        #print('err:shrinkage:',np.sum(np.square(H*self.X-r)))
-        return H*w,r*w
     
     # -------------------------------------------------------------------------
     #                                 Build
@@ -1381,11 +1366,7 @@ class Gridshell(MMesh):  # Hui
         if kwargs.get('boundary_closeness'):
             Hi, ri = self.boundary_closeness_constraints(**kwargs)
             H = sparse.vstack((H, Hi))
-            r = np.hstack((r, ri))
-        if kwargs.get('avoid_shrinkage'): # Hui add 
-            Hi,ri = self.con_avoid_shrinkage_edge_length(**kwargs)
-            H = sparse.vstack((H, Hi))
-            r = np.hstack((r, ri))       
+            r = np.hstack((r, ri))   
         return H, r
 
     def fairness_energy(self, **kwargs):
@@ -1760,7 +1741,7 @@ class Gridshell(MMesh):  # Hui
     def cut2(self):
         H = self.halfedges
         densities = self.force_densities
-        hc = super(Gridshell, self).cut()
+        hc = super(GridshellNew, self).cut()
         if len(hc) == 0:
             return
         n_den = densities[H[hc,5]][:,0]

@@ -12,8 +12,7 @@ from scipy import sparse
 #------------------------------------------------------------------------------
 """
 from constraints_basic import 
-    column3D,con_edge,con_unit,con_bigger_than,\
-    con_constl,con_equal_length,\
+    column3D,con_edge,con_unit,con_constl,con_equal_length,\
     con_planarity,con_planarity_constraints,con_unit_normal,con_orient
 """
 # -------------------------------------------------------------------------
@@ -77,16 +76,6 @@ def con_constl(c_ld1,init_l1,N):
     data = np.ones(num,dtype=int)
     r = init_l1
     H = sparse.coo_matrix((data,(row,col)), shape=(num, N))
-    return H,r
-
-def con_bigger_than(X,minl,c_vi,c_vj,c_ai,num):
-    "(vi-vj)^2-ai^2=minl"
-    col = np.r_[c_vi,c_vj,c_ai]
-    row = np.tile(np.arange(num),7)
-    data = 2*np.r_[X[c_vi]-X[c_vj], -X[c_vi]+X[c_vj], -X[c_ai]]
-    r = np.linalg.norm((X[c_vi]-X[c_vj]).reshape(-1,3,order='F'),axis=1)**2
-    r = r - X[c_ai]**2 + np.ones(num)*minl
-    H = sparse.coo_matrix((data,(row,col)), shape=(num, len(X)))
     return H,r
 
 def con_planarity(X,c_v1,c_v2,c_n): 

@@ -14,10 +14,8 @@ from archgeolab.archgeometry import orthogonalVectors
 
 from archgeolab.archgeometry import curves
 
-from archgeolab.archgeometry import meshes
+### meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> project folder
 
-### meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> project folder
-
-from archgeolab.archgeometry import gridshell
+from archgeolab.archgeometry import gridshell_new
 
 from archgeolab.archgeometry import gui_basic

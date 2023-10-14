@@ -102,7 +102,7 @@ class GuidedProjection(GuidedProjectionBase):
 
         'fixed_corners' : 0,
 
-        'gliding' : 1,
+        'gliding' : 0, # Huinote: glide on boundary, used for itself boundary
 
         'reference_closeness' : 0,
 
@@ -114,11 +114,11 @@ class GuidedProjection(GuidedProjectionBase):
 
         'fixed_boundary_normals': 0,
 
-        'mesh_fairness' : 0.1,
+        'mesh_fairness' : 0.01,
 
-        'tangential_fairness' : 0.1,
+        'tangential_fairness' : 0.01,
 
-        'boundary_fairness' : 0.1,
+        'boundary_fairness' : 0.01,
 
         'spring_fairness' : 0}
 

@@ -11,19 +11,13 @@ import numpy as np
 # -----------------------------------------------------------------------------
 from geometrylab.optimization.guidedprojectionbase import GuidedProjectionBase
 
-from geometrylab import utilities
-
-from geometrylab.geometry import Frame
-
-from geometrylab.geometry import Circle
-
 from archgeolab.constraints.constraints_basic import con_planarity_constraints
 
 from archgeolab.constraints.constraints_fairness import con_fairness_4th_different_polylines
 
 from archgeolab.constraints.constraints_net import con_unit_edge,\
-    con_orthogonal_midline,con_planar_1familyof_polylines,\
-    con_anet,con_anet_diagnet,con_snet,con_snet_diagnet,con_multinets_orthogonal
+    con_orthogonal_midline,con_anet,con_anet_diagnet,con_snet,\
+    con_snet_diagnet,con_multinets_orthogonal
 
 from archgeolab.constraints.constraints_glide import con_glide_in_plane,\
     con_alignment,con_alignments,con_selected_vertices_glide_in_one_plane,\
@@ -31,12 +25,11 @@ from archgeolab.constraints.constraints_glide import con_glide_in_plane,\
             
 from archgeolab.constraints.constraints_equilibrium import edge_length_constraints,\
     equilibrium_constraints,compression_constraints,area_constraints,\
-    vector_area_constraints,circularity_constraints,\
+    vector_area_constraints,\
     boundary_densities_constraints,fixed_boundary_normals_constraints
                     
 from archgeolab.archgeometry.conicSection import interpolate_sphere
 
-from archgeolab.archgeometry.meshes import make_quad_mesh_pieces
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -59,8 +52,6 @@ class GP_OrthoNet(GuidedProjectionBase):
     _Nanet = 0
     _Nsnet,_Ns_n,_Ns_r = 0,0,0
     _Nsdnet = 0
-
-    _Nopp1 = _Nopp2 = 0
 
     def __init__(self):
         GuidedProjectionBase.__init__(self)
@@ -91,9 +82,7 @@ class GP_OrthoNet(GuidedProjectionBase):
         'Snet_orient' : 1,
         'Snet_constR' : 0,
 
-        'planar_ply1' : 0,
-        'planar_ply2' : 0,
-        
+
         ##Note: below from geometrylab/optimization/Guidedprojection.py:
         'normal' : 0, #no use, replaced Davide's planarity way
 
@@ -103,13 +92,11 @@ class GP_OrthoNet(GuidedProjectionBase):
 
         'geometric' : 1, #default is True, used in constraints_equilibrium.py
 
-        'circularity' : 0, ##is principal mesh
-
         'fixed_vertices' : 1,
 
         'fixed_corners' : 0,
 
-        'gliding' : 1,
+        'gliding' : 0, # Huinote: glide on boundary, used for itself boundary
 
         'equilibrium' : 0,
         
@@ -128,10 +115,6 @@ class GP_OrthoNet(GuidedProjectionBase):
         self._glide_reference_polyline = None
         self.i_glide_bdry_crv, self.i_glide_bdry_ver = [],[]
         self.assign_coordinates = None
-        
-        self.set_another_polyline = 0
-        
-        self._ver_poly_strip1,self._ver_poly_strip2 = None,None
 
         self.if_uniqradius = False
         self.assigned_snet_radius = 0
@@ -192,9 +175,7 @@ class GP_OrthoNet(GuidedProjectionBase):
                    
                    self.get_weight('Snet'),
                    self.get_weight('Snet_diagnet'),
-   
-                   self.get_weight('planar_ply1'),
-                   self.get_weight('planar_ply2'),
+
                    1)
     @property
     def angle(self):
@@ -229,20 +210,6 @@ class GP_OrthoNet(GuidedProjectionBase):
     @glide_reference_polyline.setter
     def glide_reference_polyline(self,polyline):
         self._glide_reference_polyline = polyline        
-        
-    @property
-    def ver_poly_strip1(self):
-        if self._ver_poly_strip1 is None:
-            if self.get_weight('planar_ply1'):
-                self.index_of_mesh_polylines()
-        return self._ver_poly_strip1  
-    
-    @property
-    def ver_poly_strip2(self):
-        if self._ver_poly_strip2 is None:
-            if self.get_weight('planar_ply2'):
-                self.index_of_mesh_polylines()
-        return self._ver_poly_strip2  
 
     #--------------------------------------------------------------------------
     #                               Initialization
@@ -268,12 +235,7 @@ class GP_OrthoNet(GuidedProjectionBase):
             self.set_weight('fixed_corners', 10 * self.max_weight)
         if self.get_weight('fixed_boundary_normals') != 0:
             self.set_weight('fixed_boundary_normals', 10 * self.max_weight)
-        #------------------------------------
-        # if self.get_weight('isogonal'): 
-        #     self.set_weight('unit_edge_vec', 1*self.get_weight('isogonal'))
-        # elif self.get_weight('isogonal_diagnet'): 
-        #     self.set_weight('unit_diag_edge_vec', 1*self.get_weight('isogonal_diagnet')) 
-        #--------------------------------------
+
           
     def set_dimensions(self): # Huinote: be used in guidedprojectionbase
         "X:= [Vx,Vy,Vz]"
@@ -286,7 +248,6 @@ class GP_OrthoNet(GuidedProjectionBase):
 
         Nanet = N
         Nsnet = Ns_n = Ns_r = N
-        Nopp1 = Nopp2 = N
 
         #---------------------------------------------
         if self.get_weight('planarity') != 0:
@@ -301,10 +262,6 @@ class GP_OrthoNet(GuidedProjectionBase):
             "X += [Ax,Ay,Az, area]"
             N += 4*F
             N3 = N4 = N
-        if self.get_weight('circularity') != 0:
-            "X += [Cx,Cy,Cz]"
-            N += 3*F
-            N4 = N
 
         if self.get_weight('unit_edge_vec'): #Gnet, AGnet
             "X+=[le1,le2,le3,le4,ue1,ue2,ue3,ue4]"
@@ -322,13 +279,7 @@ class GP_OrthoNet(GuidedProjectionBase):
         if self.get_weight('Anet') or self.get_weight('Anet_diagnet'):
             N += 3*self.mesh.num_rrv4f4#3*num_regular
             Nanet = N
-        
-        if self.get_weight('planar_ply1'):
-            N += 3*len(self.ver_poly_strip1)
-            Nopp1 = N
-        if self.get_weight('planar_ply2'):
-            N += 3*len(self.ver_poly_strip2)
-            Nopp2 = N    
+
             
         ### Snet(_diag) project:
         if self.get_weight('Snet') or self.get_weight('Snet_diagnet'):
@@ -360,10 +311,7 @@ class GP_OrthoNet(GuidedProjectionBase):
             self.reinitialize = True
         if Ns_r != self._Ns_r:
             self.reinitialize = True
-        if Nopp1 != self._Nopp1:
-            self.reinitialize = True
-        if Nopp2 != self._Nopp2:
-            self.reinitialize = True
+
         #----------------------------------------------
         self._N = N
         self._N1 = N1
@@ -373,7 +321,6 @@ class GP_OrthoNet(GuidedProjectionBase):
         self._N5 = N5
         self._Nanet = Nanet
         self._Nsnet,self._Ns_n,self._Ns_r = Nsnet,Ns_n,Ns_r
-        self._Nopp1, self._Nopp2 = Nopp1, Nopp2
 
         self.build_added_weight() # Hui add
         
@@ -396,11 +343,6 @@ class GP_OrthoNet(GuidedProjectionBase):
             face_area = np.linalg.norm(vector_area, axis=1)
             vector_area = vector_area.flatten('F')
             X = np.hstack((X, vector_area, face_area))
-        if self.get_weight('circularity') != 0:
-            "X += [Cx,Cy,Cz]; len=3F"
-            centers = self.mesh.face_barycenters()
-            centers = centers.flatten('F')
-            X = np.hstack((X, centers))
 
         if self.get_weight('unit_edge_vec'):
             _,l1,l2,l3,l4,E1,E2,E3,E4 = self.mesh.get_v4_unit_edge(rregular=True)
@@ -423,13 +365,6 @@ class GP_OrthoNet(GuidedProjectionBase):
                 v = self.mesh.rr_star_corner[0]
             V4N = self.mesh.vertex_normals()[v]
             X = np.r_[X,V4N.flatten('F')]
-            
-        if self.get_weight('planar_ply1'):
-            sn = self.get_poly_strip_normal(pl1=True)
-            X = np.r_[X,sn.flatten('F')]
-        if self.get_weight('planar_ply2'):
-            sn = self.get_poly_strip_normal(pl2=True)
-            X = np.r_[X,sn.flatten('F')]
 
         ### Snet-project:
         if self.get_weight('Snet') or self.get_weight('Snet_diagnet'):
@@ -448,112 +383,6 @@ class GP_OrthoNet(GuidedProjectionBase):
     #                       Getting (initilization + Plotting):
     #--------------------------------------------------------------------------
 
-    def index_of_mesh_polylines(self):
-        "index_of_strip_along_polyline without two bdry vts, this include full"
-        "ver_poly_strip1,ver_poly_strip2"
-        iall = self.mesh.get_both_isopolyline(diagpoly=self.switch_diagmeth,
-                                              is_one_or_another=self.set_another_polyline)
-        self._ver_poly_strip1 = iall   
-        iall = self.mesh.get_both_isopolyline(diagpoly=self.switch_diagmeth,
-                                              is_one_or_another=not self.set_another_polyline)
-        self._ver_poly_strip2 = iall        
-        
-    def get_poly_strip_normal(self,pl1=False,pl2=False):
-        "for planar strip: each strip 1 normal as variable, get mean n here"
-        V = self.mesh.vertices
-        if pl1:
-            iall = self.ver_poly_strip1
-        elif pl2:
-            iall = self.ver_poly_strip2
-            
-        n = np.array([0,0,0])
-        for iv in iall:
-            if len(iv)==2:
-                ni = np.array([(V[iv[1]]-V[iv[0]])[1],-(V[iv[1]]-V[iv[0]])[0],0]) # random orthogonal normal
-            elif len(iv)==3:
-                vl,v0,vr = iv[0],iv[1],iv[2]
-                ni = np.cross(V[vl]-V[v0],V[vr]-V[v0])
-            else:
-                vl,v0,vr = iv[:-2],iv[1:-1],iv[2:]
-                ni = np.cross(V[vl]-V[v0],V[vr]-V[v0])
-                ni = ni / np.linalg.norm(ni,axis=1)[:,None]
-                ni = np.mean(ni,axis=0)
-            ni = ni / np.linalg.norm(ni)
-            n = np.vstack((n,ni))
-        return n[1:,:]    
-    
-    def get_mesh_planar_normal_or_plane(self,pl1=False,pl2=False,pln=False,scale=None):
-        V = self.mesh.vertices
-        if pl1:
-            iall = self.ver_poly_strip1
-        elif pl2:
-            iall = self.ver_poly_strip2
-        num = len(iall)
-        
-        if not pln:
-            an=vn = np.array([0,0,0])
-            i= 0
-            for iv in iall:
-                vl,v0,vr = iv[:-2],iv[1:-1],iv[2:]
-                an = np.vstack((an,V[iv]))
-                if pl1: #self.get_weight('planar_ply1'):
-                    nx = self.X[self._Nopp1-3*num+i]
-                    ny = self.X[self._Nopp1-2*num+i]
-                    nz = self.X[self._Nopp1-1*num+i]
-                    ni = np.tile(np.array([nx,ny,nz]),len(iv)).reshape(-1,3) 
-                elif pl2: #self.get_weight('planar_ply2'):
-                    nx = self.X[self._Nopp2-3*num+i]
-                    ny = self.X[self._Nopp2-2*num+i]
-                    nz = self.X[self._Nopp2-1*num+i]
-                    ni = np.tile(np.array([nx,ny,nz]),len(iv)).reshape(-1,3)     
-                else:
-                    "len(an)=len(ni)=len(iv)-2"
-                    an = np.vstack((an,V[v0]))
-                    ni = np.cross(V[vl]-V[v0],V[vr]-V[v0])
-                    ni = ni / np.linalg.norm(ni,axis=1)[:,None]
-                    
-                vn = np.vstack((vn,ni))
-                i+= 1
-            return an[1:,:],vn[1:,:]
-        else:
-            "planar strip passing through ply-vertices with above uninormal"
-            P1=P2=P3=P4 = np.array([0,0,0])
-            i= 0
-            for iv in iall:
-                vl,vr = iv[:-1],iv[1:]
-                vec = V[vr]-V[vl]
-                vec = np.vstack((vec,vec[-1])) #len=len(iv)
-                if scale is None:
-                    scale = np.mean(np.linalg.norm(vec,axis=1)) * 0.4
-                if pl1: #self.get_weight('planar_ply1'):
-                    nx = self.X[self._Nopp1-3*num+i]
-                    ny = self.X[self._Nopp1-2*num+i]
-                    nz = self.X[self._Nopp1-1*num+i]
-                    oni = np.array([nx,ny,nz])
-                    Ni = np.cross(vec,oni)
-                elif pl2: #self.get_weight('planar_ply2'):
-                    nx = self.X[self._Nopp2-3*num+i]
-                    ny = self.X[self._Nopp2-2*num+i]
-                    nz = self.X[self._Nopp2-1*num+i]
-                    oni = np.array([nx,ny,nz])
-                    Ni = np.cross(vec,oni)
-                else:
-                    il,i0,ir = iv[:-2],iv[1:-1],iv[2:]
-                    oni = np.cross(V[il]-V[i0],V[ir]-V[i0])
-                    oni = np.vstack((oni[0],oni,oni[-1])) #len=len(iv)
-                    oni = oni / np.linalg.norm(oni,axis=1)[:,None]
-                    Ni = np.cross(vec,oni)
-                uNi = Ni / np.linalg.norm(Ni,axis=1)[:,None] * scale  
-                i+= 1  
-                ###need to check
-                #an,anvn = V[vl]-uNi[:-1],V[vr]-uNi[1:]
-                an,anvn = V[vl]+uNi[:-1],V[vr]+uNi[1:]
-                P1,P2 = np.vstack((P1,V[vl])),np.vstack((P2,V[vr])) ## or an,anvn
-                P4,P3 = np.vstack((P4,an)),np.vstack((P3,anvn))
-            pm = make_quad_mesh_pieces(P1[1:],P2[1:],P3[1:],P4[1:])   
-            return pm
-    
-    #-------------------------------------
     def get_snet(self,is_r,is_diag=False,is_orient=True):
         """
         each vertex has one [a,b,c,d,e] for sphere equation:
@@ -706,10 +535,6 @@ class GP_OrthoNet(GuidedProjectionBase):
             self.add_iterative_constraint(H, r, 'face_vector_area')
             H,r = vector_area_constraints(**self.weights)
             self.add_iterative_constraint(H, r, 'face_area')
-            
-        if self.get_weight('circularity') != 0:
-            H,r = circularity_constraints(**self.weights)
-            self.add_iterative_constraint(H, r,'circularity')
         
         if self.get_weight('multinets_orthogonal') !=0: 
             H,r =  con_multinets_orthogonal(**self.weights)
@@ -789,14 +614,6 @@ class GP_OrthoNet(GuidedProjectionBase):
                 H,r = con_snet_diagnet(**self.weights)
             self.add_iterative_constraint(H, r, 'Snet_diag') 
 
-        if self.get_weight('planar_ply1'):
-            H,r = con_planar_1familyof_polylines(self._Nopp1,self.ver_poly_strip1,
-                                                 **self.weights)              
-            self.add_iterative_constraint(H, r, 'planar_ply1')
-        if self.get_weight('planar_ply2'):
-            H,r = con_planar_1familyof_polylines(self._Nopp2,self.ver_poly_strip2,
-                                                 **self.weights)              
-            self.add_iterative_constraint(H, r, 'planar_ply2')   
         ###--------------------------------------------------------------------                
    
         self.is_initial = False   
@@ -818,9 +635,7 @@ class GP_OrthoNet(GuidedProjectionBase):
         self.add_weight('Nsnet', self._Nsnet)
         self.add_weight('Ns_n', self._Ns_n)
         self.add_weight('Ns_r', self._Ns_r)
-        self.add_weight('Nopp1', self._Nopp1)
-        self.add_weight('Nopp2', self._Nopp2)
-        
+
     def values_from_each_iteration(self,**kwargs):
         if kwargs.get('unit_edge_vec'):
             if True:
@@ -927,16 +742,6 @@ class GP_OrthoNet(GuidedProjectionBase):
         E = self.mesh.E
         N1 = self._N1
         return self.X[N1+E:N1+2*E]
-
-    def face_circumcenters(self):
-        if self.get_weight('circularity') == 0:
-            return self.mesh.face_barycenters()
-        X = self.X
-        F = self.mesh.F
-        O = self._N3
-        centers = X[O:O+3*F]
-        centers = np.reshape(centers, (F,3), order='F')
-        return centers
 
     #--------------------------------------------------------------------------
     #                                Errors strings
@@ -1115,18 +920,3 @@ class GP_OrthoNet(GuidedProjectionBase):
 
     def applied_loads(self):
         return self.mesh.applied_loads()
-
-    def face_circum_circles(self):
-        C = self.face_circumcenters()
-        f, v = self.mesh.face_vertices_iterators()
-        l = self.mesh.face_lengths()
-        r = C[f] - self.mesh.vertices[v]
-        d = np.linalg.norm(r, axis=1)
-        d = utilities.sum_repeated(d, f)
-        r = d / l
-        e3 = self.mesh.face_normals()
-        e1 = utilities.orthogonal_vectors(e3)
-        e2 = np.cross(e3, e1)
-        frame = Frame(C, e1, e2, e3)
-        circles = Circle(frame, r)
-        return circles

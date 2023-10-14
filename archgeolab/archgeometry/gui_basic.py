@@ -2,7 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
-__author__ = 'Davide Pellis + Hui'
+__author__ = 'Davide Pellis + Hui Wang'
 #------------------------------------------------------------------------------
 import os
 
@@ -41,12 +41,12 @@ from geometrylab.gui.tools import IncrementalRemesh,CornerTolerance,Loads,SaveMe
 
 #from geometrylab.optimization.gridshell import Gridshell ##Hui comment
 ##Hui: super on geometrylab/optimization/Gridshell()
-from archgeolab.archgeometry.gridshell import Gridshell 
+from archgeolab.archgeometry.gridshell_new import GridshellNew
 
 # -----------------------------------------------------------------------------
 """forked from geometrylab/gui/geolabgui.py
 
-meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> project folder
+meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> project folder
 """
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -596,7 +596,7 @@ class GeolabGUI(MultiSceneManager):
     #--------------------------------------------------------------------------
 
     def open_obj_file(self, file_name):
-        mesh = Gridshell()
+        mesh = GridshellNew()
         mesh.read_obj_file(file_name)
         self.__geometries.append(mesh)
         if not self._closed:
@@ -635,7 +635,7 @@ class GeolabGUI(MultiSceneManager):
         obj.make_mesh(v0, f0) # start mesh
         if move:
             #obj.move([-1.2*(np.max(v0[:,0])-np.min(v0[:,0])),0,0])
-            # mesh = Gridshell()
+            # mesh = GridshellNew()
             # mesh.import_mesh(obj)
             obj.move([0,0,-0.1*np.mean(obj.edge_lengths())])
         name = 'startmesh'#obj.name + '_start' #== 'mesh_start'

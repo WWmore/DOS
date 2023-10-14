@@ -16,8 +16,6 @@ from geometrylab.gui.geolabmesh import GeolabMesh
 
 from geometrylab.gui.geolabpoints import GeolabPoints
 
-from geometrylab.gui.geolabbspline import GeolabBSpline
-
 from geometrylab.optimization.gridshell import Gridshell
 
 # -----------------------------------------------------------------------------
@@ -135,7 +133,7 @@ class SceneManager(PlotManager):
                pass#scene.remove()
 
     def add_object(self, geometry, name=None):
-        if geometry.type is 'Mesh':
+        if geometry.type == 'Mesh':
             if not hasattr(geometry, 'constrained_vertices'):
                 g = Gridshell()
                 g.import_mesh(geometry)
@@ -143,12 +141,8 @@ class SceneManager(PlotManager):
             GM = GeolabMesh(self.scene_model)
             GM.geometry = geometry
             obj = GM
-        if geometry.type is 'Points':
+        if geometry.type == 'Points':
             GP = GeolabPoints(self.scene_model)
-            GP.geometry = geometry
-            obj = GP
-        if geometry.type is 'BSpline':
-            GP = GeolabBSpline(self.scene_model)
             GP.geometry = geometry
             obj = GP
         if name is not None:
