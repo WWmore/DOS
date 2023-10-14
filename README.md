@@ -7,7 +7,7 @@ Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
 Abstract: *To represent smooth geometric shapes by coarse polygonal meshes, visible edges often follow special families of curves on a surface to achieve visually pleasing results. Important examples of such families are principal curvature lines, asymptotic lines or geodesics. In a surprisingly big amount of use-cases, these curves form an orthogonal net. While the condition of orthogonality between smooth curves on a surface is straightforward, the discrete counterpart, namely orthogonal quad meshes, is not. In this paper, we study the definition of discrete orthogonality based on equal diagonal lengths in every quadrilateral. We embed this definition in the theory of discrete differential geometry and highlight its benefits for practical applications. We demonstrate the versatility of this approach by combining discrete orthogonality with other classical constraints known from discrete differential geometry. Orthogonal multi-nets, i.e. meshes where discrete orthogonality holds on any parameter rectangle, receive an in-depth analysis.*
 
 This repository contains the implementation associated with the paper "Discrete Orthogonal Structures", which can be found [here](https://doi.org/10.1016/j.cag.2023.05.024). 
-Please cite the paper if you use this code in your project.
+Please cite the paper if you use this code in your project. Welcome to push issues and work together to make a Grasshopper plugin if you are interested.
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
@@ -86,39 +86,27 @@ Or use the exported files within ```./conda/``` to set your environment
 
 
 
-Python programming visualization for optimization of quad meshes. 
+Python programming visualization for optimization problems in the Architectural Geometry / Geometry Processing area. 
 
 ![File](assets/mayavi.png)
 
 
 ### Implementation layout
-[![layout](https://img.youtube.com/vi/1l6DCW9BmYM/hqdefault.jpg)](https://www.youtube.com/embed/1l6DCW9BmYM)
-[<img src="https://img.youtube.com/vi/1l6DCW9BmYM/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/1l6DCW9BmYM)
-
+[![layout](assets/layout.png)](https://www.youtube.com/embed/1l6DCW9BmYM)
 
 
 ### Implementation of a principal net optimized from an orthogonal PQ mesh
-[![PQ](https://img.youtube.com/vi/m-CFC0XZ488/hqdefault.jpg)](https://www.youtube.com/embed/m-CFC0XZ488)
-[<img src="https://img.youtube.com/vi/m-CFC0XZ488/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/m-CFC0XZ488)
-
+[![PQ](assets/pq.png)](https://www.youtube.com/embed/m-CFC0XZ488)
 
 
 ### Implementation of a minimal net optimized from an orthogonal A-net
-[![Anet](https://img.youtube.com/vi/KQbJ2e_Ow7M/hqdefault.jpg)](https://www.youtube.com/embed/KQbJ2e_Ow7M)
-[<img src="https://img.youtube.com/vi/KQbJ2e_Ow7M/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/KQbJ2e_Ow7M)
+[![Anet](assets/anet.png)](https://www.youtube.com/embed/KQbJ2e_Ow7M)
 
 
 ### Implementation of a CMC net optimized from an orthogonal S-net with const. radius
-[![CMC](https://img.youtube.com/vi/vgb9A6uAidw/hqdefault.jpg)](https://www.youtube.com/embed/vgb9A6uAidw)
-[<img src="https://img.youtube.com/vi/vgb9A6uAidw/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/vgb9A6uAidw)
+[![CMC](assets/cmc.png)](https://www.youtube.com/embed/vgb9A6uAidw)
 
 
-### Implementation of a principal stress net optimized from an orthogonal funicular mesh
-[![Funicular](https://img.youtube.com/vi/sOzjRHIrR-s/hqdefault.jpg)](https://www.youtube.com/embed/sOzjRHIrR-s)
-[<img src="https://img.youtube.com/vi/sOzjRHIrR-s/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/sOzjRHIrR-s)
+### Implementation of a principal stress net optimized from an orthogonal equilibrium mesh
+[![Funicular](assets/funicular.png)](https://www.youtube.com/embed/sOzjRHIrR-s)
 
