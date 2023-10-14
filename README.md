@@ -75,7 +75,50 @@ Or use the exported files within ```./conda/``` to set your environment
 
   - if you want to add a new project, you can create a new folder similar to the folder 'archgeolab'. Then the mesh geometry, optimization and GUI will be based on the files in geometrylab folder.
 
-  - archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell.py --> gui_basic.py --> guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
+  - archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
 
 </details>
 <br>
+
+
+## ArchGeo Visualization
+
+
+
+
+Python programming visualization for optimization of quad meshes. 
+
+![File](assets/mayavi.png)
+
+
+### Implementation layout
+[![layout](https://img.youtube.com/vi/1l6DCW9BmYM/hqdefault.jpg)](https://www.youtube.com/embed/1l6DCW9BmYM)
+[<img src="https://img.youtube.com/vi/1l6DCW9BmYM/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/1l6DCW9BmYM)
+
+
+
+### Implementation of a principal net optimized from an orthogonal PQ mesh
+[![PQ](https://img.youtube.com/vi/m-CFC0XZ488/hqdefault.jpg)](https://www.youtube.com/embed/m-CFC0XZ488)
+[<img src="https://img.youtube.com/vi/m-CFC0XZ488/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/m-CFC0XZ488)
+
+
+
+### Implementation of a minimal net optimized from an orthogonal A-net
+[![Anet](https://img.youtube.com/vi/KQbJ2e_Ow7M/hqdefault.jpg)](https://www.youtube.com/embed/KQbJ2e_Ow7M)
+[<img src="https://img.youtube.com/vi/KQbJ2e_Ow7M/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/KQbJ2e_Ow7M)
+
+
+### Implementation of a CMC net optimized from an orthogonal S-net with const. radius
+[![CMC](https://img.youtube.com/vi/vgb9A6uAidw/hqdefault.jpg)](https://www.youtube.com/embed/vgb9A6uAidw)
+[<img src="https://img.youtube.com/vi/vgb9A6uAidw/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/vgb9A6uAidw)
+
+
+### Implementation of a principal stress net optimized from an orthogonal funicular mesh
+[![Funicular](https://img.youtube.com/vi/sOzjRHIrR-s/hqdefault.jpg)](https://www.youtube.com/embed/sOzjRHIrR-s)
+[<img src="https://img.youtube.com/vi/sOzjRHIrR-s/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/sOzjRHIrR-s)
+
