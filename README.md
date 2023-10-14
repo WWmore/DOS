@@ -7,12 +7,12 @@ Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
 Abstract: *To represent smooth geometric shapes by coarse polygonal meshes, visible edges often follow special families of curves on a surface to achieve visually pleasing results. Important examples of such families are principal curvature lines, asymptotic lines or geodesics. In a surprisingly big amount of use-cases, these curves form an orthogonal net. While the condition of orthogonality between smooth curves on a surface is straightforward, the discrete counterpart, namely orthogonal quad meshes, is not. In this paper, we study the definition of discrete orthogonality based on equal diagonal lengths in every quadrilateral. We embed this definition in the theory of discrete differential geometry and highlight its benefits for practical applications. We demonstrate the versatility of this approach by combining discrete orthogonality with other classical constraints known from discrete differential geometry. Orthogonal multi-nets, i.e. meshes where discrete orthogonality holds on any parameter rectangle, receive an in-depth analysis.*
 
 This repository contains the implementation associated with the paper "Discrete Orthogonal Structures", which can be found [here](https://doi.org/10.1016/j.cag.2023.05.024). 
-Please cite the paper if you use this code in your project. Welcome to push issues and work together to make a Grasshopper plugin if you are interested.
+Please cite the paper if you use this code in your project. 
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
-    <pre><code>@Article{SMI2023,
+    <pre><code>@Article{DOS2023,
       author       = {Dellinger, Felix and Li, Xinye and Wang, Hui},
       title        = {Discrete Orthogonal Structures},
       journal      = {Computers & Graphics},
@@ -20,6 +20,7 @@ Please cite the paper if you use this code in your project. Welcome to push issu
       pages        = {126--137},
       month        = {June},
       year         = {2023},
+      doi          = {10.1016/j.cag.2023.05.024},
       url          = {https://www.huiwang.me/projects/10_project/}
 }</code></pre>
   </div>
@@ -84,9 +85,9 @@ Or use the exported files within ```./conda/``` to set your environment
 ## ArchGeo Visualization
 
 
+Python programming visualization for optimization problems in the Architectural Geometry / Geometry Processing area.
+This implementation major works on quad meshes.
 
-
-Python programming visualization for optimization problems in the Architectural Geometry / Geometry Processing area. 
 
 ![File](assets/mayavi.png)
 
@@ -107,6 +108,10 @@ Python programming visualization for optimization problems in the Architectural 
 [![CMC](assets/cmc.png)](https://www.youtube.com/embed/vgb9A6uAidw)
 
 
-### Implementation of a principal stress net optimized from an orthogonal equilibrium mesh
+### Implementation of a principal stress net from an orthogonal equilibrium mesh
 [![Funicular](assets/funicular.png)](https://www.youtube.com/embed/sOzjRHIrR-s)
 
+
+Welcome to push issues and work together to make a Grasshopper plugin if you are interested.
+Hoping this codebase is helpful for your research work. 
+Welcome to the research collaborations.
