@@ -66,7 +66,15 @@ Or use the exported files within ```./conda/``` to set your environment
 ![File](assets/files.png)
 
 <details>
-<summary><span style="font-weight: bold;">Files relations.</span></summary>
+<summary><span style="font-weight: bold;">File tree.</span></summary>
+
+  ![File](assets/tree.png)
+
+</details>
+<br>
+
+<details>
+<summary><span style="font-weight: bold;">File relations.</span></summary>
 
   - note: in the above figure, rectangles represent .py file and rounded rectangles represent folder names.
 
@@ -80,6 +88,9 @@ Or use the exported files within ```./conda/``` to set your environment
 
 </details>
 <br>
+
+
+
 
 
 ## ArchGeo Visualization
@@ -112,6 +123,13 @@ This implementation major works on quad meshes.
 [![Funicular](assets/funicular.png)](https://www.youtube.com/embed/sOzjRHIrR-s)
 
 
-Welcome to push issues and work together to make a Grasshopper plugin if you are interested.
+------
+## Contributions
+If you find this codebase and paper helpful in your research, welcome to cite the paper and give a :star: .
+This project was initially developed by [Davide Pellis (davidepellis@gmail.com)](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en). 
+It is still under development. 
+Please feel free to push issues or submit requests to contribute to our codebase (e.g. add shadows of the model).
+Welcome to work together to make a Grasshopper plugin if you are interested.
 Hoping this codebase is helpful for your research work. 
+
 Welcome to the research collaborations.
