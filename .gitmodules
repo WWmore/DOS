@@ -1,0 +1,3 @@
+[submodule "geometrylab"]
+	path = geometrylab
+	url = https://github.com/WWmore/geometrylab
