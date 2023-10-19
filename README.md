@@ -61,7 +61,7 @@ Or use the exported files within ```./conda/``` to set your environment
     ```
 
 
-## Files relations
+## File relations
 
 ![File](assets/files.png)
 
@@ -74,7 +74,7 @@ Or use the exported files within ```./conda/``` to set your environment
 <br>
 
 <details>
-<summary><span style="font-weight: bold;">File relations.</span></summary>
+<summary><span style="font-weight: bold;">File notice.</span></summary>
 
   - note: in the above figure, rectangles represent .py file and rounded rectangles represent folder names.
 
