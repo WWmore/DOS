@@ -73,6 +73,8 @@ Or use the exported files within ```./conda/``` to set your environment
 </details>
 <br>
 
+![File](assets/frame.png)
+
 <details>
 <summary><span style="font-weight: bold;">File notice.</span></summary>
 
@@ -82,7 +84,7 @@ Or use the exported files within ```./conda/``` to set your environment
 
   - if you want to test how it works, just try python files in geometrylab/test: ex. run paneling.py, then a GUI window will be opened.
 
-  - if you want to add a new project, you can create a new folder similar to the folder 'archgeolab'. Then the mesh geometry, optimization and GUI will be based on the files in geometrylab folder.
+  - if you want to add a new optimization project, you can create a new folder similar to the folder 'archgeolab'. Then the mesh geometry, optimization and GUI will be based on the files in geometrylab folder (please refer to archgeolab).
 
   - archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
 
@@ -94,7 +96,7 @@ Or use the exported files within ```./conda/``` to set your environment
 The optimizer uses Guided Projection Algorithm, a Gauss-Newton algorithm, as dissused in the paper [Form-finding with polyhedral meshes made simple](https://doi.org/10.1145/2601097.2601213), in a Python environment to produce quadmesh models.
 
 <details>
-<summary><span style="font-weight: bold;">Abstract of 'Form-finding with polyhedral meshes made simple'</span></summary>
+<summary><span style="font-weight: bold;">Abstract of the paper 'Form-finding with Polyhedral Meshes Made Simple'</span></summary>
 
   We solve the form-finding problem for polyhedral meshes in a way which combines form, function and fabrication; taking care of user-specified constraints like boundary interpolation, planarity of faces, statics, panel size and shape, enclosed volume, and last, but not least, cost. Our main application is the interactive modeling of meshes for architectural and industrial design. Our approach can be described as guided exploration of the constraint space whose algebraic structure is simplified by introducing auxiliary variables and ensuring that constraints are at most quadratic. Computationally, we perform a projection onto the constraint space which is biased towards low values of an energy which expresses desirable "soft" properties like fairness. We have created a tool which elegantly handles difficult tasks, such as taking boundary-alignment of polyhedral meshes into account, planarization, fairing under planarity side conditions, handling hybrid meshes, and extending the treatment of static equilibrium to shapes which possess overhanging parts.
 
