@@ -43,6 +43,8 @@ Using Anaconda to install every package.
     3. Open Anaconda, under "geo" environment open Spyder
 
 Once above installation failed because of versions conflict, then try below installations:
+<details>
+<summary><span style="font-weight: bold;">step-by-step installation.</span></summary>
 
     ```
     $ conda create -n geo python=3.6
@@ -54,16 +56,17 @@ Once above installation failed because of versions conflict, then try below inst
     $ conda install pyface
     ```
 
-Or use the exported files within ```./conda/``` to set your environment
+  Or use the exported files within ```./conda/``` to set your environment
 
     ```
     $ conda env create -f environment.yml
     ```
 
+</details>
+<br>
+
 
 ## File Relations
-
-![File](assets/files.png)
 
 <details>
 <summary><span style="font-weight: bold;">File tree.</span></summary>
@@ -73,20 +76,24 @@ Or use the exported files within ```./conda/``` to set your environment
 </details>
 <br>
 
+![File](assets/files.png)
+
 ![File](assets/frame.png)
 
 <details>
 <summary><span style="font-weight: bold;">File notice.</span></summary>
 
-  - note: in the above figure, rectangles represent .py file and rounded rectangles represent folder names.
-
   - files in geometrylab folder are basic, nothing need to be changed.
 
-  - if you want to test how it works, just try python files in geometrylab/test: ex. run paneling.py, then a GUI window will be opened.
-
-  - if you want to add a new optimization project, you can create a new folder similar to the folder 'archgeolab'. Then the mesh geometry, optimization and GUI will be based on the files in geometrylab folder (please refer to archgeolab).
-
   - archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
+
+  - run readfile_orthonet.py to test how it works; a GUI window will be opened
+  
+  - The GUI settings are in opt_gui_orthonet.py
+  
+  - The constraints settings are in guidedprojection_orthonet.py
+
+  - if you want to add a new optimization project, please refer to archgeolab; You can create a new folder similar to the folder 'archgeolab'. Then the mesh geometry, optimization and GUI will be based on the files in geometrylab folder.
 
 </details>
 <br>
