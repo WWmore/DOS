@@ -1,5 +1,7 @@
 # Discrete Orthogonal Structures 
 
+<img src="assets/AG.png" align="right" width="10">
+
 Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
 | [Project Page](https://www.huiwang.me/projects/10_project/) | [Full Paper](https://www.huiwang.me/assets/pdf/2023SMI.pdf) | [Publication Page](https://doi.org/10.1016/j.cag.2023.05.024) | [Documentation (TBD)](https://www.huiwang.me/mkdocs-archgeo/) |<br>
 ![Teaser image](assets/teaser.png)
@@ -151,8 +153,8 @@ This implementation major works on quad meshes.
 If you find this codebase and paper helpful in your research, welcome to cite the paper and give a :star: .
 This project was initially developed by [Davide Pellis (davidepellis@gmail.com)](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en). 
 It is still under development. 
-Please feel free to push issues or submit requests to contribute to our codebase (e.g. add shadows of the model).
-Welcome to work together to make a Grasshopper plugin if you are interested.
+Please feel free to push issues or submit requests to contribute to our codebase.
+Welcome to work together to make a Grasshopper plugin if you are interested. For any commercial uses, please contact us.
 Hoping this codebase is helpful for your research work. 
 
 Welcome to the research collaborations.
