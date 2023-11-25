@@ -1,0 +1,7 @@
+
+*.bak
+.spyproject/config/backups/encoding.ini.bak
+*.ini
+*.ini
+archgeolab/constraints/__pycache__/constraints_glide.cpython-39.pyc
+*.pyc

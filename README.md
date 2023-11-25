@@ -1,9 +1,9 @@
 # Discrete Orthogonal Structures 
 
-<img src="assets/AG.png" align="right" width="10">
+<img src="assets/AG.png" align="right" width="50">
 
 Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
-| [Project Page](https://www.huiwang.me/projects/10_project/) | [Full Paper](https://www.huiwang.me/assets/pdf/2023SMI.pdf) | [Publication Page](https://doi.org/10.1016/j.cag.2023.05.024) | [Documentation (TBD)](https://www.huiwang.me/mkdocs-archgeo/) |<br>
+| [Project Page](https://www.huiwang.me/projects/10_project/) | [Full Paper](https://www.huiwang.me/assets/pdf/2023SMI.pdf) | [Publication Page](https://doi.org/10.1016/j.cag.2023.05.024) | [Documentation](https://www.huiwang.me/mkdocs-archgeo/) |<br>
 ![Teaser image](assets/teaser.png)
 
 <details>

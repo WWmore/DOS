@@ -1039,7 +1039,7 @@ class OrthoNet(GeolabComponent):
                 is_diag = True
             an,N = self.optimizer.get_snet_data(is_diag,normal=True)
             self.meshmanager.plot_vectors(anchor=an,vectors=N,#normal neg or pos
-                                          position='tail',color='black',
+                                          position='tail',color=(162,20,47),
                                           name=name)
             
             N0 = self.mesh.vertex_normals()
