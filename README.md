@@ -14,7 +14,7 @@ Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
 </details>
 <br>
 
-This repository contains the implementation associated with the paper "Discrete Orthogonal Structures", which can be found [here](https://doi.org/10.1016/j.cag.2023.05.024). 
+This repository contains the implementation associated with the paper ["Discrete Orthogonal Structures"](https://doi.org/10.1016/j.cag.2023.05.024). 
 Please cite the paper if you use this code in your project. 
 
 <section class="section" id="BibTeX">
@@ -151,10 +151,10 @@ This implementation major works on quad meshes.
 ------
 ## Contributions
 If you find this codebase and paper helpful in your research, welcome to cite the paper and give a :star: .
-This project was initially developed by [Davide Pellis (davidepellis@gmail.com)](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en). 
+This project was initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en). 
 It is still under development. 
 Please feel free to push issues or submit requests to contribute to our codebase.
 Welcome to work together to make a Grasshopper plugin if you are interested. For any commercial uses, please contact us.
 Hoping this codebase is helpful for your research work. 
 
-Welcome to the research collaborations.
+Welcome to the research collaborations!
