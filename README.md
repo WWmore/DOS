@@ -1,6 +1,4 @@
-# ArchGeo Library
-
-<img src="assets/AG.png" align="right" width="50">
+# ArchGeo Library <img src="assets/AG.png" align="center" width="40">
 
 | Basic Library | Related Projects | **License** | **Documentation** |
 |:-:|:-:|:-:|:-:|
