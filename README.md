@@ -1,6 +1,14 @@
-# Discrete Orthogonal Structures 
+# ArchGeo Library
 
 <img src="assets/AG.png" align="right" width="50">
+
+| Basic Library | Related Projects | **License** | **Documentation** |
+|:-:|:-:|:-:|:-:|
+| Numpy,SciPy,Mayavi,[geometrylab](https://github.com/WWmore/geometrylab) | [Discrete Orthogonal Structures ](https://github.com/WWmore/DOS#discrete-orthogonal-structures) | [![GitHub license](https://img.shields.io/github/license/alshedivat/al-folio?color=blue)](https://tlo.mit.edu/researchers-mit-community/protect/software-open-source-protection)|  [![doc](https://img.shields.io/badge/doc-readthedocs-blueviolet)](https://www.huiwang.me/mkdocs-archgeo/) |
+
+# Discrete Orthogonal Structures 
+
+<!-- <img src="assets/AG.png" align="right" width="50"> -->
 
 Felix Dellinger, Xinye Li, and Hui Wang* (corresponding author)<br>
 | [Project Page](https://www.huiwang.me/projects/10_project/) | [Full Paper](https://www.huiwang.me/assets/pdf/2023SMI.pdf) | [Publication Page](https://doi.org/10.1016/j.cag.2023.05.024) | [Documentation](https://www.huiwang.me/mkdocs-archgeo/) |<br>
