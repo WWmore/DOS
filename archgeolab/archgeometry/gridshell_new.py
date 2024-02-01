@@ -73,13 +73,13 @@ class GridshellNew(MMesh):  # Hui
 
         self._force_densities = None
 
-        self._handle = np.array([], dtype=np.int)
+        self._handle = np.array([], dtype=int)
 
-        self.__constrained_vertices = np.array([], dtype=np.int)
+        self.__constrained_vertices = np.array([], dtype=int)
 
-        self.__gliding_vertices = np.array([], dtype=np.int)
+        self.__gliding_vertices = np.array([], dtype=int)
 
-        self.__fixed_vertices = np.array([], dtype=np.int)
+        self.__fixed_vertices = np.array([], dtype=int)
 
         if file_name is not None:
             self.read_obj_file(file_name)
@@ -126,9 +126,9 @@ class GridshellNew(MMesh):  # Hui
     @handle.setter
     def handle(self, vertex_index):
         if vertex_index is None:
-            self._handle = np.array([], dtype=np.int)
+            self._handle = np.array([], dtype=int)
         else:
-            self._handle = np.array(vertex_index, dtype=np.int)
+            self._handle = np.array(vertex_index, dtype=int)
 
     @property
     def force_densities(self):
@@ -149,7 +149,7 @@ class GridshellNew(MMesh):  # Hui
     @property
     def applied_forces(self):
         if self._applied_forces is None:
-            self._applied_forces = np.zeros((self.V, 3), dtype=np.float)
+            self._applied_forces = np.zeros((self.V, 3), dtype=float)
         forces = np.copy(self._applied_forces)
         return forces
 
@@ -166,7 +166,7 @@ class GridshellNew(MMesh):  # Hui
     @property
     def fixed_vertices(self):
         if self.__fixed_vertices is None:
-            self.__fixed_vertices = np.array([], dtype=np.int)
+            self.__fixed_vertices = np.array([], dtype=int)
         if self._fixed_vertices is None:
             return self.__fixed_vertices
         elif self._fixed_vertices == 'boundary': # Hui: change 'is' to ==
@@ -192,9 +192,9 @@ class GridshellNew(MMesh):  # Hui
     @property
     def constrained_vertices(self):
         if self.__constrained_vertices is None:
-            self.__constrained_vertices = np.array([], dtype=np.int)
+            self.__constrained_vertices = np.array([], dtype=int)
         if self._constrained_vertices is None:
-            self.__constrained_vertices = np.array([], dtype=np.int)
+            self.__constrained_vertices = np.array([], dtype=int)
             return self.__constrained_vertices
         elif self._constrained_vertices == 'boundary':
             constrained = np.hstack((self.__constrained_vertices,
@@ -216,7 +216,7 @@ class GridshellNew(MMesh):  # Hui
     @property
     def gliding_vertices(self):
         if self.__gliding_vertices is None:
-            self.__gliding_vertices = np.array([], dtype=np.int)
+            self.__gliding_vertices = np.array([], dtype=int)
         if self._gliding_vertices is None:
             return self.__gliding_vertices
         elif self._gliding_vertices == 'constrained':
@@ -362,7 +362,7 @@ class GridshellNew(MMesh):  # Hui
 
     def apply_boundary_load(self, tangent_load, normal_load, vertex_indices):
         F = self.applied_forces
-        v = np.array(vertex_indices, dtype=np.int)
+        v = np.array(vertex_indices, dtype=int)
         tangents = self.boundary_tangents(normalize=False)
         A = np.linalg.norm(tangents, axis=1, keepdims=True)
         normals = self.boundary_normals()
@@ -376,7 +376,7 @@ class GridshellNew(MMesh):  # Hui
         self.reinitialize_densities()
 
     def constrain(self, vertex_indices):
-        v = np.array(vertex_indices, dtype=np.int)
+        v = np.array(vertex_indices, dtype=int)
         self.__constrained_vertices = np.unique(v)
         self.reinitialize_densities()
 
@@ -385,14 +385,14 @@ class GridshellNew(MMesh):  # Hui
         self.reinitialize_densities()
 
     def glide(self, vertex_indices):
-        v = np.array(vertex_indices, dtype=np.int)
+        v = np.array(vertex_indices, dtype=int)
         self.__gliding_vertices = np.unique(v)
 
     def reset_gliding(self):
         self.__gliding_vertices = None
 
     def fix(self, vertex_indices):
-        v = np.array(vertex_indices, dtype=np.int)
+        v = np.array(vertex_indices, dtype=int)
         self.__fixed_vertices = np.unique(np.hstack((v, self.__fixed_vertices)))
 
     def unfix(self, vertex_indices):

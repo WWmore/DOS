@@ -22,7 +22,7 @@ path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.append(path)
 
-#print(path)
+#print(path) ##/Users/X/Github/DOS
 #------------------------------------------------------------------------------
 
 
@@ -44,7 +44,8 @@ if __name__ == '__main__':
     #file = snet + r'\cmc1.obj'
     #file = equ + r'\quad_dome.obj'
     
-    
+    ## if MacBook:
+    file = path + '/objs/obj_equilibrium' + '/quad_dome.obj'
 
     #----------------------------------------
 
