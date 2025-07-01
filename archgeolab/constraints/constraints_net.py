@@ -538,7 +538,7 @@ def con_snet_diagnet(orientrn,**kwargs):
         Ho,ro = _con_orient(c_n,c_n_sqr)
         H = sparse.vstack((H, Ho * w1))
         r = np.r_[r, ro * w1]
-        ##c
+
     if kwargs.get('Snet_constR'):
         w2 = kwargs.get('Snet_constR')
         Ns_r = kwargs.get('Ns_r')
