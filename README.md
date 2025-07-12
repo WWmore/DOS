@@ -12,7 +12,7 @@ For visualization, it utilizes the Python-based [Mayavi3D library](https://mayav
 Comprehensive [documentation for ArchGeo](https://www.huiwang.me/mkdocs-archgeo/) is available, covering core aspects like installation and optimization algorithms. Welcome to check!
 ![Dodumentation](assets/docupage.png)
 
-This GitHub repository, dedicated to the "Discrete Orthogonal Structures" project, showcases orthogonal quad mesh optimization within the Discrete Differential Geometry (DDG) research area. It highlights the capabilities of ArchGeo. More features will be open-sourced soon.
+This GitHub repository, dedicated to the "Discrete Orthogonal Structures" project, showcases orthogonal quad mesh optimization within the DDG research area. It highlights the capabilities of ArchGeo. More features will be open-sourced soon.
 
 
 # Discrete Orthogonal Structures 
@@ -167,9 +167,7 @@ This implementation primarily addresses optimization problems involving quad mes
 ## Contributions
 
 <!-- ### Project Background and Evolution -->
-ArchGeo, initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en), originated from TU Wien's research in architectural geometry and has since evolved through projects at KAUST and Xi'an Jiaotong University. This journey has resulted in around 20 top-tier academic publications.
-
-<!-- ### Core Algorithms and Applications -->
+ArchGeo, initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en), originated from TU Wien's research in architectural geometry and has since evolved through projects at KAUST and Xi'an Jiaotong University. This journey has resulted in around 20 high-quality academic publications.
 Its core algorithms can be integrated with Rhino3D's Grasshopper plugin, significantly aiding in the design of [large-scale grid shells](https://github.com/WWmore/compute.rhino3d). This integration exemplifies ArchGeo's pivotal role in advancing geometric design and construction.
 
 <!-- ### Features and User Benefits -->
