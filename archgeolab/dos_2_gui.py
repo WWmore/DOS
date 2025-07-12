@@ -6,917 +6,1234 @@ Created on Sun Dec 18 22:16:21 2022
 """
 __author__ = 'Hui'
 #------------------------------------------------------------------------------
+import os
+
+import sys
+
+path = os.path.dirname(os.path.abspath(__file__))
+
+sys.path.append(path)
+#print(path)
+
+from traits.api import Button,String,on_trait_change, Float, Bool, Range,Int
+
+from traitsui.api import View, Item, HGroup, Group, VGroup
+
 import numpy as np
+#------------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-from geometrylab.optimization.guidedprojectionbase import GuidedProjectionBase
+from geometrylab.gui.geolabcomponent import GeolabComponent
+from geometrylab.vtkplot.edgesource import Edges
+from geometrylab.vtkplot.facesource import Faces
+from geometrylab.geometry import Polyline
 
-from archgeolab.constraints.constraints_basic import con_planarity_constraints
+from dos_3_opt import GP_OrthoNet
+from archgeolab.archgeometry.conicSection import get_sphere_packing,\
+    get_vs_interpolated_sphere
 
-from archgeolab.constraints.constraints_fairness import con_fairness_4th_different_polylines
+#------------------------------------------------------------------------------
 
-from archgeolab.constraints.constraints_net import con_unit_edge,\
-    con_orthogonal_midline,con_anet,con_anet_diagnet,con_snet,\
-    con_snet_diagnet,con_multinets_orthogonal
+''' build:  
+    show:   
+'''
 
-from archgeolab.constraints.constraints_glide import con_glide_in_plane,\
-    con_alignment,con_alignments,con_selected_vertices_glide_in_one_plane,\
-    con_fix_vertices,con_sharp_corner
-            
-from archgeolab.constraints.constraints_equilibrium import edge_length_constraints,\
-    equilibrium_constraints,compression_constraints,area_constraints,\
-    vector_area_constraints,\
-    boundary_densities_constraints,fixed_boundary_normals_constraints
-                    
-from archgeolab.archgeometry.conicSection import interpolate_sphere
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#                        InteractiveGuidedProjection
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
+class OrthoNet(GeolabComponent):
 
-class GP_OrthoNet(GuidedProjectionBase):
-    _N1 = 0
+    name = String('Orthogonal-Net')
     
-    _N2 = 0
+    itera_run = Int(5)
 
-    _N3 = 0
+    epsilon = Float(0.001, label='dumping')
 
-    _N4 = 0
-    
-    _N5 = 0
-    
-    _compression = 0
+    step = Float(1)
 
-    _mesh = None
+    fairness_reduction = Range(low=0,high=5,value=0,label='F-reduce')
+
+    mesh_fairness = Float(0.0000,label='meshF')
+
+    tangential_fairness = Float(0.0000,label='tangF')
+
+    boundary_fairness = Float(0.0000,label='bondF')
+
+    spring_fairness = Float(0.0000,label='springF')
     
-    _Nanet = 0
-    _Nsnet,_Ns_n,_Ns_r = 0,0,0
-    _Nsdnet = 0
+    corner_fairness = Float(0,label='cornerF')
+    
+    fairness_diagmesh = Float(0,label='diagF')
+
+    reference_closeness = Float(0,label='refC')
+    
+    fairness_4diff = Float(0,label='Fair4diff')
+    fairness_diag_4diff = Float(0,label='FairDiag4diff')
+
+    boundary_glide = Float(0,label='bdryGlide') ##weight for all
+    i_boundary_glide = Float(0,label='iBdryGlide') ##weight for i-th
+    glide_1st_bdry = Bool(label='1st')
+    glide_2nd_bdry = Bool(label='2nd')
+    glide_3rd_bdry = Bool(label='3rd')
+    glide_4th_bdry = Bool(label='4th')
+    glide_5th_bdry = Bool(label='5th')
+    glide_6th_bdry = Bool(label='6th')
+    glide_7th_bdry = Bool(label='7th')
+    glide_8th_bdry = Bool(label='8th')
+
+    sharp_corner = Bool(label='SharpCor')
+    
+    self_closeness = Float(0,label='selfC')
+    
+    set_refer_mesh = Bool(label='SetRefer')
+    show_refer_mesh = Bool(label='ShowRefer')
+    show_ref_mesh_boundary = Bool(label='ShowReferBdry')
+    
+    fair0 = Button(label='0')
+    fair1 = Button(label='0.1')
+    fair01 = Button(label='0.01')
+    fair001 = Button(label='0.005')
+    fair0001 = Button(label='0.0005')
+
+    close0 = Button(label='0')
+    close005 = Button(label='0.005')
+    close01 = Button(label='0.01')
+    close05 = Button(label='0.05')
+    close1 = Button(label='0.1')
+    close5 = Button(label='0.5')
+
+    weight_fix = Float(10)
+    fix_all = Bool(label='Fix')
+    fix_boundary = Bool(label='FixB')
+    fix_boundary_i = Bool(label='FixBi')
+    fix_corner = Bool(label='FixC')
+    fix_p_weight = Float(0,label='Fix_p')
+    fix_button = Button(label='Fix')
+    unfix_button = Button(label='Unfix')
+    clearfix_button = Button(label='Clear')
+
+    boundary_z0 = Bool(label='BZ0')
+    selected_z0 = Bool(label='S_Z0')
+    selected_y0 = Bool(label='S_Y0')
+    z0 = Float(0)#Bool(label='Z=0')
+    
+    reinitialize = Button(label='ini')
+    optimize = Button(label='Opt')
+    interactive = Bool(False, label='InteractiveOpt')
+    hide_face = Bool(label='HideF')
+    hide_edge = Bool(label='HideE')    
+    ####----------------------------------------------------------------------- 
+    #--------------Optimization: -----------------------------
+    button_clear_constraint = Button(label='Clear')
+
+    orthogonal = Bool(label='Orthogonal')
+    
+    button_minimal_mesh = Button(label='Minimal')
+    Anet = Bool(0)  
+    Anet_diagnet = Bool(label='AnetDiag')
+
+    button_CMC_mesh = Button(label='CMC')
+    Snet = Bool(label='Snet')
+    Snet_diagnet = Bool(label='SnetDiag')
+    Snet_orient = Bool(True,label='Orient') ##only under Snet/Snet_diagnet
+    Snet_constR = Bool(False,label='constR') ##only under Snet/Snet_diagnet
+    if_uniqR = Bool(False) 
+    Snet_constR_assigned = Float(label='const.R')
+
+    button_principal_mesh = Button(label='PrincipalMesh')
+    planarity = Bool(label='PQ')
+    
+    button_funicularity = Button(label='OrthoFunicular')
+    equilibrium = Bool(label='Equilibrium') #equilibrium with vertical load
+
+    button_Multinets_Orthogonal = Button(label='Multinets-Orthogonal')
+    multinets_orthogonal = Bool(label='multinets-orthogonal')
+    # if_set_weight = Bool(False)
+    weigth_multinets_orthogonal = Float(label='weight.MO')
+    
+    #--------------Plotting: -----------------------------
+    show_isogonal_face_based_vector = Bool(label='F-Vec')
+    show_midpoint_edge1 = Bool(label='E1')
+    show_midpoint_edge2 = Bool(label='E2')
+    show_midpoint_polyline1 = Bool(label='Ply1')
+    show_midpoint_polyline2 = Bool(label='Ply2')
+    show_midline_mesh = Bool(label='ReMesh')
+
+    show_vs_sphere = Bool(label='VS-Sphere')
+    show_snet_center = Bool(label='Snet-C')
+    show_snet_normal = Bool(label='Snet-N')
+    show_snet_tangent = Bool(label='Snet-T')
+
+    show_multinets_diagonals = Bool(label='Multinets-Diagonals') 
+    
+    print_error = Button(label='Error')
+    #--------------Save: --------------------
+    save_button = Button(label='Save')
+    label = String('obj')
+    save_new_mesh = None
+    
+    #--------------Print: -----------------------------
+    print_orthogonal = Button(label='Check')
+    print_computation = Button(label='Computation')
+    #--------------------------------------------------------------------------
+    view = View(VGroup(Group(
+    #---------------------------------------------------------
+    Group(## 1st-panel
+        VGroup(
+              #HGroup(Item('set_another_poly'),),    
+              HGroup('orthogonal',),
+              HGroup('planarity',
+                     ),
+              HGroup('Anet',
+                     'Anet_diagnet',),
+              HGroup('Snet',
+                     'Snet_diagnet',
+                     #'Snet_orient',
+                     'Snet_constR',
+                     Item('if_uniqR',show_label=False),
+                     'Snet_constR_assigned'),
+              HGroup('equilibrium',
+                     ),
+              HGroup(Item('button_principal_mesh',show_label=False),
+                     Item('button_minimal_mesh',show_label=False),
+                     Item('button_CMC_mesh',show_label=False),
+                     Item('button_funicularity',show_label=False),
+                     Item('button_clear_constraint',show_label=False)
+                     ),
+              HGroup(Item('button_Multinets_Orthogonal',show_label=False),
+                     'multinets_orthogonal',
+                     'weigth_multinets_orthogonal'
+                     ), 
+        label='Opt',show_border=True),
+        #------------------------------------------------  
+        VGroup(HGroup('show_isogonal_face_based_vector',
+                      'show_midpoint_edge1',
+                      'show_midpoint_edge2',
+                      'show_midpoint_polyline1',
+                      'show_midpoint_polyline2',
+                      'show_midline_mesh'),
+              HGroup('show_vs_sphere',
+                     'show_snet_center',
+                     'show_snet_tangent',
+                     'show_snet_normal',),
+              HGroup('show_multinets_diagonals',), 
+        label='Plotting',show_border=True),
+        #------------------------------------------------  
+        VGroup(HGroup(Item('print_error',show_label=False)),),
+        
+        #------------------------------------------------  
+        label='Opt',show_border=True),
+    #---------------------------------------------------------
+    #---------------------------------------------------------
+    Group(## 2nd-panel
+        HGroup('itera_run',#'epsilon','step'
+               ),
+        VGroup(HGroup(Item('fair1',show_label=False),
+                      Item('fair01',show_label=False),
+                      Item('fair001',show_label=False),
+                      Item('fair0001',show_label=False),
+                      Item('fair0',show_label=False)),
+               HGroup('mesh_fairness',
+                      'boundary_fairness',
+                      'corner_fairness'),
+               HGroup('tangential_fairness',
+                      'spring_fairness'),
+               HGroup('fairness_4diff',
+                      'fairness_diag_4diff'),
+                      'fairness_reduction',
+                      'fairness_diagmesh',
+               show_border=True,label='Fairness'),
+        VGroup(HGroup(Item('close5',show_label=False),
+                      Item('close1',show_label=False),
+                      Item('close05',show_label=False),
+                      Item('close01',show_label=False),
+                      Item('close0',show_label=False)),
+               HGroup('self_closeness',
+                      'reference_closeness'),
+                      'boundary_glide',
+               HGroup('set_refer_mesh',
+                      'show_refer_mesh',
+                      'show_ref_mesh_boundary',),
+               HGroup('i_boundary_glide',
+                      'glide_1st_bdry',
+                      'glide_2nd_bdry',
+                      'glide_3rd_bdry',
+                      'glide_4th_bdry',
+                      'glide_5th_bdry',
+                      'glide_6th_bdry',
+                      'glide_7th_bdry',
+                      'glide_8th_bdry',),
+               show_border=True,label='Closeness'),
+       #----------------------------------------------------------------------
+       
+       show_border=False,label='GP1'),  
+    #---------------------------------------------------------
+    #---------------------------------------------------------
+    Group(## 3rd-panel
+         VGroup(HGroup('weight_fix'),
+                HGroup(
+                       'fix_all',
+                       'fix_boundary',
+                       'fix_boundary_i',
+                       'fix_corner',),
+                HGroup('boundary_z0',
+                       'z0'),
+                HGroup('selected_z0','selected_y0',
+                       Item('fix_p_weight',show_label=False),),
+                HGroup(Item('fix_button',show_label=False),
+                       Item('unfix_button',show_label=False),
+                       Item('clearfix_button',show_label=False)),    
+             show_border=True,label='select'),
+          ###-------------------------------------
+          HGroup('label',
+                 Item('save_button',show_label=False),
+                 label='Saving',show_border=True),
+          ###-------------------------------------
+       show_border=False,label='GP2'),                             
+             #-----------------
+             show_border=False,
+             layout='tabbed'),  
+             #----------------
+             HGroup(Item('interactive',
+                         tooltip='InteractiveOptimization',),
+                    Item('_'),
+                    Item('optimize',show_label=False),
+                    Item('reinitialize',show_label=False),
+                    'hide_face','hide_edge',
+                    show_border=False),     
+         #----------------    
+         show_labels=False,
+         show_border=False),                
+    resizable=True,
+    width = 0.04,
+    )
+    # -------------------------------------------------------------------------
+    #                                Initialize
+    # -------------------------------------------------------------------------
 
     def __init__(self):
-        GuidedProjectionBase.__init__(self)
+        GeolabComponent.__init__(self)
 
-        weights = {
-            
-        'fairness_4diff' :0,
-        'fairness_diag_4diff' :0,
- 
-        'boundary_glide' :0, #Hui in gpbase.py doesn't work, replace here.
-        'i_boundary_glide' :0,
-        'boundary_z0' :0,
-        'sharp_corner' : 0,
-        'z0' : 0,
-
-        'unit_edge_vec' : 0,  ## [ei, li]
-        'unit_diag_edge_vec' : 0,
-
-        'planarity' : 0,
-
-        'orthogonal' :0,
-
-        'Anet' : 0,  
-        'Anet_diagnet' : 0,  
+        self.optimizer = GP_OrthoNet()
         
-        'Snet' : 0,
-        'Snet_diagnet' : 0,
-        'Snet_orient' : 1,
-        'Snet_constR' : 0,
-
-
-        ##Note: below from geometrylab/optimization/Guidedprojection.py:
-        'normal' : 0, #no use, replaced Davide's planarity way
-
-        'edge_length' : 0,
-
-        'area' : 0,
-
-        'geometric' : 1, #default is True, used in constraints_equilibrium.py
-
-        'fixed_vertices' : 1,
-
-        'fixed_corners' : 0,
-
-        'gliding' : 0, # Huinote: glide on boundary, used for itself boundary
-
-        'equilibrium' : 0,
+        self.counter = 0
         
-        'multinets_orthogonal' : 0,
-
-        'fixed_boundary_normals': 0,        
+        self._fixed_vertex = []
         
-        }
+        self.ref_glide_bdry_polyline = None
 
-        self.add_weights(weights)
-        
-        self.switch_diagmeth = False
-        
-        self.is_initial = True
-        
-        self._glide_reference_polyline = None
-        self.i_glide_bdry_crv, self.i_glide_bdry_ver = [],[]
-        self.assign_coordinates = None
-
-        self.if_uniqradius = False
-        self.assigned_snet_radius = 0
-
-    #--------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------
-
+        self.snet_normal = self.snet_diagG_binormal = None
+    # -------------------------------------------------------------------------
+    #                                Properties
+    # -------------------------------------------------------------------------
     @property
     def mesh(self):
-        return self._mesh
-
-    @mesh.setter
-    def mesh(self, mesh):
-        self._mesh = mesh
-        self.initialization()
-        
-    @property
-    def compression(self):
-        return self._compression
-
-    @compression.setter
-    def compression(self, bool):
-        if bool:
-            self._compression = 2*self.get_weight('equilibrium')
-            self.reinitialize = True
-        elif self._compression > 0:
-             self._compression = 0
-
-    @property
-    def tension(self):
-        return -self._compression
-
-    @tension.setter
-    def tension(self, bool):
-        if bool:
-            self._compression = -2*self.get_weight('equilibrium')
-            self.reinitialize = True
-        elif self._compression < 0:
-            self._compression = 0
-
-    @property
-    def max_weight(self):    
-        return max(self.get_weight('geometric'),
-                   self.get_weight('equilibrium'),
-                   self.get_weight('boundary_glide'),
-                   self.get_weight('planarity'),
-                   
-                   self.get_weight('multinets_orthogonal'),
-                   
-                   self.get_weight('unit_edge_vec'),
-                   self.get_weight('unit_diag_edge_vec'),
-                   
-                   self.get_weight('orthogonal'),
-
-                   self.get_weight('Anet'),
-                   self.get_weight('Anet_diagnet'),
-                   
-                   self.get_weight('Snet'),
-                   self.get_weight('Snet_diagnet'),
-
-                   1)
-    @property
-    def angle(self):
-        return self._angle
-
-    @angle.setter
-    def angle(self,angle):
-        if angle != self._angle:
-            self.mesh.angle=angle
-        self._angle = angle
-        
-    @property
-    def glide_reference_polyline(self):
-        if self._glide_reference_polyline is None:
-            #polylines = self.mesh.boundary_polylines() #Hui note: problem for boundary_polylines()
-            polylines = self.mesh.boundary_curves(corner_split=False)[0]   
-            ##print(polylines)
-            
-            N = 5
-            try:
-                for polyline in polylines:
-                    polyline.refine(N)
-            except:
-                ###Add below for closed 1 boundary of reference mesh
-                from geometrylab.geometry import Polyline
-                polyline = Polyline(self.mesh.vertices[polylines],closed=True)  
-                polyline.refine(N)
-
-            self._glide_reference_polyline = polyline
-        return self._glide_reference_polyline
-
-    @glide_reference_polyline.setter
-    def glide_reference_polyline(self,polyline):
-        self._glide_reference_polyline = polyline        
-
-    #--------------------------------------------------------------------------
-    #                               Initialization
-    #--------------------------------------------------------------------------
-
-    def set_weights(self):
-        if self.get_weight('equilibrium') != 0:
-            if self.mesh.area_load != 0:
-                if self.get_weight('area') == 0:
-                    self.set_weight('area', 1 * self.get_weight('equilibrium'))
-            else:
-                self.set_weight('area', 0)
-        if self.reinitialize:
-            if self.get_weight('equilibrium') != 0:
-                self.set_weight('edge_length', 1 * self.get_weight('equilibrium'))
-                if self.mesh.area_load != 0:
-                    self.set_weight('area', 1*self.get_weight('equilibrium'))
-            if self.get_weight('planarity') != 0:
-                self.set_weight('normal', 1*self.get_weight('planarity'))
-        self.set_weight('fixed_vertices', 10 * self.max_weight)
-        self.set_weight('gliding', 10 * self.max_weight)
-        if self.get_weight('fixed_corners') != 0:
-            self.set_weight('fixed_corners', 10 * self.max_weight)
-        if self.get_weight('fixed_boundary_normals') != 0:
-            self.set_weight('fixed_boundary_normals', 10 * self.max_weight)
-
-          
-    def set_dimensions(self): # Huinote: be used in guidedprojectionbase
-        "X:= [Vx,Vy,Vz]"
-        V = self.mesh.V
-        F = self.mesh.F
-        E = self.mesh.E
-        N = 3*V
-        N1 = N2 = N3 = N4 = N5 = N
-        num_regular = self.mesh.num_regular
-
-        Nanet = N
-        Nsnet = Ns_n = Ns_r = N
-
-        #---------------------------------------------
-        if self.get_weight('planarity') != 0:
-            "X += [Nx,Ny,Nz]"
-            N += 3*F
-            N1 = N2 = N3 = N4 = N
-        if self.get_weight('equilibrium') != 0:
-            "X += [edge_length, force_density, sqrt_force_density]"
-            N += 3*E
-            N2 = N3 = N4 = N
-        if self.get_weight('area') != 0:
-            "X += [Ax,Ay,Az, area]"
-            N += 4*F
-            N3 = N4 = N
-
-        if self.get_weight('unit_edge_vec'): #Gnet, AGnet
-            "X+=[le1,le2,le3,le4,ue1,ue2,ue3,ue4]"
-            if self.get_weight('isogonal'):
-                N += 16*num_regular
-            else:
-                "for Anet, AGnet, DGPC"
-                N += 16*self.mesh.num_rrv4f4
-            N5 = N
-        elif self.get_weight('unit_diag_edge_vec'): #Gnet_diagnet
-            "le1,le2,le3,le4,ue1,ue2,ue3,ue4 "
-            N += 16*self.mesh.num_rrv4f4
-            N5 = N
-
-        if self.get_weight('Anet') or self.get_weight('Anet_diagnet'):
-            N += 3*self.mesh.num_rrv4f4#3*num_regular
-            Nanet = N
-
-            
-        ### Snet(_diag) project:
-        if self.get_weight('Snet') or self.get_weight('Snet_diagnet'):
-            num_snet = self.mesh.num_rrv4f4 
-            N += 11*num_snet  
-            Nsnet = N
-            if self.get_weight('Snet_orient'):
-                N +=4*num_snet  
-                Ns_n = N
-            if self.get_weight('Snet_constR'):
-                N += 1
-                Ns_r = N
-
-        #---------------------------------------------
-        if N1 != self._N1 or N2 != self._N2:
-            self.reinitialize = True
-        if N3 != self._N3 or N4 != self._N4:
-            self.reinitialize = True
-        if self._N2 - self._N1 == 0 and N2 - N1 > 0:
-            self.mesh.reinitialize_densities()
-
-        if N5 != self._N5:
-            self.reinitialize = True
-        if Nanet != self._Nanet:
-            self.reinitialize = True
-        if Nsnet != self._Nsnet:
-            self.reinitialize = True
-        if Ns_n != self._Ns_n:
-            self.reinitialize = True
-        if Ns_r != self._Ns_r:
-            self.reinitialize = True
-
-        #----------------------------------------------
-        self._N = N
-        self._N1 = N1
-        self._N2 = N2
-        self._N3 = N3
-        self._N4 = N4
-        self._N5 = N5
-        self._Nanet = Nanet
-        self._Nsnet,self._Ns_n,self._Ns_r = Nsnet,Ns_n,Ns_r
-
-        self.build_added_weight() # Hui add
-        
-        
-    def initialize_unknowns_vector(self):
-        "X:= [Vx,Vy,Vz]"
-        X = self.mesh.vertices.flatten('F')
-        if self.get_weight('planarity') != 0:
-            "X += [Nx,Ny,Nz]; len=3F"
-            normals = self.mesh.face_normals()
-            X = np.hstack((X, normals.flatten('F')))
-        if self.get_weight('equilibrium') != 0:
-            "X += [edge_length, force_density, sqrt_force_density]; len=3E"
-            lengths = self.mesh.edge_lengths()
-            W = self.mesh.force_densities
-            X = np.hstack((X, lengths, W, np.abs(W)**0.5))
-        if self.get_weight('area') != 0:
-            "X += [Ax,Ay,Az, area]; len=4F"
-            vector_area = self.mesh.face_vector_areas()
-            face_area = np.linalg.norm(vector_area, axis=1)
-            vector_area = vector_area.flatten('F')
-            X = np.hstack((X, vector_area, face_area))
-
-        if self.get_weight('unit_edge_vec'):
-            _,l1,l2,l3,l4,E1,E2,E3,E4 = self.mesh.get_v4_unit_edge(rregular=True)
-            X = np.r_[X,l1,l2,l3,l4]
-            X = np.r_[X,E1.flatten('F'),E2.flatten('F'),E3.flatten('F'),E4.flatten('F')]
-
-        elif self.get_weight('unit_diag_edge_vec'):
-            _,l1,l2,l3,l4,E1,E2,E3,E4 = self.mesh.get_v4_diag_unit_edge()
-            X = np.r_[X,l1,l2,l3,l4]
-            X = np.r_[X,E1.flatten('F'),E2.flatten('F'),E3.flatten('F'),E4.flatten('F')]
-
-        if self.get_weight('Anet') or self.get_weight('Anet_diagnet'):
-            if self.get_weight('Anet'):
-                if True:
-                    "only r-regular vertex"
-                    v = self.mesh.ver_rrv4f4
-                else:
-                    v = self.mesh.ver_regular
-            elif self.get_weight('Anet_diagnet'):
-                v = self.mesh.rr_star_corner[0]
-            V4N = self.mesh.vertex_normals()[v]
-            X = np.r_[X,V4N.flatten('F')]
-
-        ### Snet-project:
-        if self.get_weight('Snet') or self.get_weight('Snet_diagnet'):
-            r = self.get_weight('Snet_constR')
-            is_diag = False if self.get_weight('Snet') else True
-            x_snet,Nv4 = self.get_snet(r,is_diag)
-            X = np.r_[X,x_snet]
-        #-----------------------
-        
-        self._X = X
-        self._X0 = np.copy(X)
-            
-        self.build_added_weight() # Hui add
-
-    #--------------------------------------------------------------------------
-    #                       Getting (initilization + Plotting):
-    #--------------------------------------------------------------------------
-
-    def get_snet(self,is_r,is_diag=False,is_orient=True):
-        """
-        each vertex has one [a,b,c,d,e] for sphere equation:
-            f=a(x^2+y^2+z^2)+(bx+cy+dz)+e=0
-            when a=0; plane equation
-            (x-x0)^2+(y-y0)^2+(z-z0)^2=R^2
-            M = (x0,y0,z0)=-(b,c,d)/2a
-            R^2 = (b^2+c^2+d^2-4ae)/4a^2
-            unit_sphere_normal==-(2*A*Vx+B, 2*A*Vy+C, 2*A*Vz+D), 
-            (note direction: from vertex to center)
-            
-        X += [V^2,A,B,C,D,E,a_sqrt]
-        if orient:
-            X += [n4,n4_sqrt], n4=-[2ax+b,2ay+c,2az+d]
-        if r:
-            X += [r]
-        if angle
-           X += [l1,l2,l3,l4,ue1,ue2,ue3,ue4]
-        """
-        V = self.mesh.vertices
-        if is_diag:
-            s0,s1,s2,s3,s4 = self.mesh.rr_star_corner
-        else:
-            s0,s1,s2,s3,s4 = self.mesh.rrv4f4
-        S0,S1,S2,S3,S4 = V[s0],V[s1],V[s2],V[s3],V[s4]
-        centers,radius,coeff,Nv4 = interpolate_sphere(S0,S1,S2,S3,S4)
-        VV = np.linalg.norm(np.vstack((S0,S1,S2,S3,S4)),axis=1)**2
-        A,B,C,D,E = coeff.reshape(5,-1)
-        A_sqrt = np.sqrt(A)
-        XA = np.r_[VV,A,B,C,D,E,A_sqrt]
-        if is_orient: ##always True
-            B,C,D,Nv4,n4_sqrt = self.mesh.orient(S0,A,B,C,D,Nv4)
-            XA = np.r_[VV,A,B,C,D,E,A_sqrt]  
-            XA = np.r_[XA, Nv4.flatten('F'),n4_sqrt]
-        if is_r:
-            r = np.mean(radius)
-            XA = np.r_[XA,r]
-        return XA, Nv4
-
-    def get_snet_data(self,is_diag=False, ##note: combine together suitable for diagonal
-                      center=False,normal=False,tangent=False,ss=False,
-                      is_diag_binormal=False):
-        "at star = self.rr_star"
-        V = self.mesh.vertices
-        if is_diag:
-            s0,s1,s2,s3,s4 = self.mesh.rr_star_corner
-        else:
-            s0,s1,s2,s3,s4 = self.mesh.rrv4f4
-            
-        S0,S1,S2,S3,S4 = V[s0],V[s1],V[s2],V[s3],V[s4]
-        centers,r,coeff,Nv4 = interpolate_sphere(S0,S1,S2,S3,S4)
-        if self.get_weight('Snet_orient'):
-            A,B,C,D,E = coeff.reshape(5,-1)
-            _,_,_,Nv4,_ = self.mesh.orient(S0,A,B,C,D,Nv4)
-            #Nv4 = self.mesh.get_v4_orient_unit_normal()[1][self.mesh.ind_rr_star_v4f4]
-            centers = S0+r[:,None]*Nv4
-        if center:
-            er0 = np.abs(np.linalg.norm(S0-centers,axis=1)-r)
-            er1 = np.abs(np.linalg.norm(S1-centers,axis=1)-r)
-            er2 = np.abs(np.linalg.norm(S2-centers,axis=1)-r)
-            er3 = np.abs(np.linalg.norm(S3-centers,axis=1)-r)
-            er4 = np.abs(np.linalg.norm(S4-centers,axis=1)-r)
-            #err = (er0+er1+er2+er3+er4) / 5
-            err = np.sqrt(er0**2+er1**2+er2**2+er3**2+er4**2)/r
-            print('radii:[min,mean,max]=','%.3f'%np.min(r),'%.3f'%np.mean(r),'%.3f'%np.max(r))
-            print('Err:[min,mean,max]=','%.3g'%np.min(err),'%.3g'%np.mean(err),'%.3g'%np.max(err))
-            return centers,err
-        elif normal:
-            # n = np.cross(C3-C1,C4-C2)
-            #n = S0-centers
-            n = Nv4
-            un = n / np.linalg.norm(n,axis=1)[:,None]
-            return S0,un
-        elif is_diag_binormal:
-            "only work for SSG/GSS/SSGG/GGSS-project, not for general Snet"
-            n = Nv4
-            un = n / np.linalg.norm(n,axis=1)[:,None]
-            if is_diag:
-                _,sa,sb,sc,sd = self.mesh.rrv4f4
-            else:
-                _,sa,sb,sc,sd = self.mesh.rr_star_corner
-            t1 = (V[sa]-V[sc])/np.linalg.norm(V[sa]-V[sc], axis=1)[:,None]
-            t2 = (V[sb]-V[sd])/np.linalg.norm(V[sb]-V[sd], axis=1)[:,None]
-            "note works for SSG..case, since un,sa-v,sc are coplanar"
-            bin1 = np.cross(un, t1)
-            bin2 = np.cross(un, t2)
-            bin1 = bin1 / np.linalg.norm(bin1, axis=1)[:,None]
-            bin2 = bin2 / np.linalg.norm(bin2, axis=1)[:,None]
-            return S0, bin1, bin2
-        elif tangent:
-            inn,_ = self.mesh.get_rr_vs_bounary()
-            V0,V1,V2,V3,V4 = S0[inn],S1[inn],S2[inn],S3[inn],S4[inn]
-            l1 = np.linalg.norm(V1-V0,axis=1)
-            l2 = np.linalg.norm(V2-V0,axis=1)
-            l3 = np.linalg.norm(V3-V0,axis=1)
-            l4 = np.linalg.norm(V4-V0,axis=1)
-            t1 = (V1-V0)*(l3**2)[:,None] - (V3-V0)*(l1**2)[:,None]
-            t1 = t1 / np.linalg.norm(t1,axis=1)[:,None]
-            t2 = (V2-V0)*(l4**2)[:,None] - (V4-V0)*(l2**2)[:,None]
-            t2 = t2 / np.linalg.norm(t2,axis=1)[:,None]
-            return V0,t1,t2
-        elif ss:
-            n = Nv4
-            un = n / np.linalg.norm(n,axis=1)[:,None]
-            return s0,un   
-        return S0,S1,S2,S3,S4,centers,r,coeff,Nv4
-  
-    # -------------------------------------------------------------------------
-    #                                 Build
-    # -------------------------------------------------------------------------
-
-    def build_iterative_constraints(self):
-        self.build_added_weight() # Hui change
-        
-        H, r = self.mesh.iterative_constraints(**self.weights) ##NOTE: in gridshell.py
-        self.add_iterative_constraint(H, r, 'mesh_iterative')
-        
-        H, r = self.mesh.fairness_energy(**self.weights) ##NOTE: in gridshell.py
-        self.add_iterative_constraint(H, r, 'fairness')
-        
-        if self.get_weight('fairness_4diff'):
-            pl1,pl2 = self.mesh.all_rr_continuous_polylist
-            pl1.extend(pl2)
-            H,r = con_fairness_4th_different_polylines(pl1,**self.weights)
-            self.add_iterative_constraint(H, r, 'fairness_4diff') 
-        if self.get_weight('fairness_diag_4diff'):
-            pl1 = self.mesh.all_rr_diag_polylist[0][0]
-            pl2 = self.mesh.all_rr_diag_polylist[1][0]
-            pl1.extend(pl2)
-            H,r = con_fairness_4th_different_polylines(pl1,diag=True,**self.weights)
-            self.add_iterative_constraint(H, r, 'fairness_diag_4diff')     
-        
-        if self.get_weight('planarity'):
-            #"use Hui's way not Davide's"
-            H,r = con_planarity_constraints(**self.weights)  
-            self.add_iterative_constraint(H, r, 'planarity')
-            
-        if self.get_weight('equilibrium') != 0:
-            H,r = edge_length_constraints(**self.weights)
-            self.add_iterative_constraint(H, r, 'edge_length')
-            H,r = equilibrium_constraints(**self.weights)
-            self.add_iterative_constraint(H, r,'equilibrium')
-            
-        if self.compression != 0 and self.get_weight('equilibrium') != 0:
-            H,r = compression_constraints(self.compression,**self.weights)
-            self.add_iterative_constraint(H, r, 'compression')
-            
-        if self.get_weight('area') != 0:
-            H,r = area_constraints(**self.weights)
-            self.add_iterative_constraint(H, r, 'face_vector_area')
-            H,r = vector_area_constraints(**self.weights)
-            self.add_iterative_constraint(H, r, 'face_area')
-        
-        if self.get_weight('multinets_orthogonal') !=0: 
-            H,r =  con_multinets_orthogonal(**self.weights)
-            self.add_iterative_constraint(H, r,'multinets_orthogonal')
-            
-        ###-------partially shared-used codes:---------------------------------
-        if self.get_weight('unit_edge_vec'): 
-            H,r = con_unit_edge(rregular=True,**self.weights)
-            self.add_iterative_constraint(H, r, 'unit_edge')
-        elif self.get_weight('unit_diag_edge_vec'): 
-            H,r = con_unit_edge(rregular=True,**self.weights)
-            self.add_iterative_constraint(H, r, 'unit_diag_edge_vec')
-
-        if self.get_weight('boundary_z0') !=0:
-            z = 0
-            v = np.array([816,792,768,744,720,696,672,648,624,600,576,552,528,504,480,456,432,408,384,360,336,312,288,264,240,216,192,168,144,120,96,72,48,24,0],dtype=int)
-            H,r = con_selected_vertices_glide_in_one_plane(v,2,z,**self.weights)              
-            self.add_iterative_constraint(H, r, 'boundary_z0')
-            
-        if self.assign_coordinates is not None:
-            index,Vf = self.assign_coordinates
-            H,r = con_fix_vertices(index, Vf.flatten('F'),**self.weights)
-            self.add_iterative_constraint(H, r, 'fix_pts')
-
-        if self.get_weight('boundary_glide'):
-            "the whole boundary"
-            refPoly = self.glide_reference_polyline
-            glideInd = self.mesh.boundary_curves(corner_split=False)[0] 
-            w = self.get_weight('boundary_glide')
-            H,r = con_alignment(w, refPoly, glideInd,**self.weights)
-            self.add_iterative_constraint(H, r, 'boundary_glide')
-        elif self.get_weight('i_boundary_glide'):
-            "the i-th boundary"
-            refPoly = self.i_glide_bdry_crv
-            glideInd = self.i_glide_bdry_ver
-            if len(glideInd)!=0:
-                w = self.get_weight('i_boundary_glide')
-                H,r = con_alignments(w, refPoly, glideInd,**self.weights)
-                self.add_iterative_constraint(H, r, 'iboundary_glide')
-
-        if self.get_weight('sharp_corner'):
-            H,r = con_sharp_corner(move=0,**self.weights)
-            self.add_iterative_constraint(H,r, 'sharp_corner')
-            
-        if self.get_weight('orthogonal'):
-            H,r = con_orthogonal_midline(**self.weights)
-            self.add_iterative_constraint(H, r, 'orthogonal')
-
-        if self.get_weight('z0') !=0:
-            H,r = con_glide_in_plane(2,**self.weights)
-            self.add_iterative_constraint(H,r, 'z0')        
-            
-        if self.get_weight('Anet'):
-            H,r = con_anet(rregular=True,**self.weights)
-            self.add_iterative_constraint(H, r, 'Anet')
-        elif self.get_weight('Anet_diagnet'):
-            H,r = con_anet_diagnet(**self.weights)
-            self.add_iterative_constraint(H, r, 'Anet_diagnet')
-
-        if self.get_weight('Snet'):
-            orientrn = self.mesh.new_vertex_normals()
-            H,r = con_snet(orientrn,
-                           is_uniqR=self.if_uniqradius,
-                           assigned_r=self.assigned_snet_radius,
-                           **self.weights)
-            self.add_iterative_constraint(H, r, 'Snet') 
-        elif self.get_weight('Snet_diagnet'):
-            if 1:
-                "SSG-PROJECT"
-                orientrn = self.mesh.new_vertex_normals()
-                H,r = con_snet(orientrn,is_diagmesh=True,
-                               is_uniqR=self.if_uniqradius,
-                               assigned_r=self.assigned_snet_radius,
-                               **self.weights)
-            else: 
-                "CRPC-project"
-                H,r = con_snet_diagnet(**self.weights)
-            self.add_iterative_constraint(H, r, 'Snet_diag') 
-
-        ###--------------------------------------------------------------------                
-   
-        self.is_initial = False   
-            
-        #print('-'*10)
-        print(' Err_total: = ','%.3e' % np.sum(np.square(self._H*self.X-self._r)))
-        #print('-'*10)
-        
-    def build_added_weight(self): # Hui add
-        self.add_weight('mesh', self.mesh)
-        self.add_weight('N', self.N)
-        self.add_weight('X', self.X)
-        self.add_weight('N1', self._N1)
-        self.add_weight('N2', self._N2)
-        self.add_weight('N3', self._N3)
-        self.add_weight('N4', self._N4)
-        self.add_weight('N5', self._N5)
-        self.add_weight('Nanet', self._Nanet)
-        self.add_weight('Nsnet', self._Nsnet)
-        self.add_weight('Ns_n', self._Ns_n)
-        self.add_weight('Ns_r', self._Ns_r)
-
-    def values_from_each_iteration(self,**kwargs):
-        if kwargs.get('unit_edge_vec'):
-            if True:
-                rr=True
-            _,l1,l2,l3,l4,_,_,_,_ = self.mesh.get_v4_unit_edge(rregular=rr)
-            Xi = np.r_[l1,l2,l3,l4]
-            return Xi
-
-        if kwargs.get('unit_diag_edge_vec'):
-            _,l1,l2,l3,l4,_,_,_,_ = self.mesh.get_v4_diag_unit_edge()
-            Xi = np.r_[l1,l2,l3,l4]
-            return Xi
-
-    def build_constant_constraints(self): #copy from guidedprojection,need to check if it works 
-        self.add_weight('N', self.N)
-        H, r = self.mesh.constant_constraints(**self.weights)
-        self.add_constant_constraint(H, r, 'mesh_constant')
-        if self.get_weight('equilibrium') > 0:
-            boundary_densities_constraints(**self.weights)
-        if self.get_weight('fixed_boundary_normals') > 0:
-            fixed_boundary_normals_constraints(**self.weights)
-
-    def build_constant_fairness(self): #copy from guidedprojection,need to check if it works 
-        self.add_weight('N', self.N)
-        K, s = self.mesh.fairness_energy(**self.weights)
-        self.add_constant_fairness(K, s)
-  
-    def post_iteration_update(self): #copy from guidedprojection,need to check if it works 
-        V = self.mesh.V
-        E = self.mesh.E
-        N1 = self._N1
-        self.mesh.vertices[:,0] = self.X[0:V]
-        self.mesh.vertices[:,1] = self.X[V:2*V]
-        self.mesh.vertices[:,2] = self.X[2*V:3*V]
-        if self.get_weight('equilibrium')!= 0:
-            self.mesh.force_densities = self.X[N1+E:N1+2*E]
-        else:
-            self.mesh.force_densities = np.zeros(self.mesh.E)
-
-    def on_reinitilize(self): #copy from guidedprojection,need to check if it works 
-        self.mesh.reinitialize_force_densities()
-    #--------------------------------------------------------------------------
-    #                                  Results
-    #--------------------------------------------------------------------------
-
-    def vertices(self):
-        V = self.mesh.V
-        vertices = self.X[0:3*V]
-        vertices = np.reshape(vertices, (V,3), order='F')
-        return vertices
-
-    def edge_lengths(self, initialized=False):
-        if self.get_weight('equilibrium') == 0:
-            return None
-        if initialized:
-            X = self._X0
-        else:
-            X = self.X
-        E = self.mesh.E
-        N1 = self._N1
-        return X[N1:N1+E]
-
-    def face_normals(self, initialized=False):
-        if self.get_weight('planarity') == 0:
-            return None
-        if initialized:
-            X = self._X0
-        else:
-            X = self.X
-        V = self.mesh.V
-        F = self.mesh.F
-        normals = X[3*V:3*V+3*F]
-        normals = np.reshape(normals, (F,3), order='F')
-        return normals
-
-    def face_vector_areas(self, initialized=False):
-        if self.get_weight('area') == 0:
-            return None
-        if initialized:
-            X = self._X0
-        else:
-            X = self.X
-        F = self.mesh.F
-        N2 = self._N2
-        areas = X[N2:N2+3*F]
-        areas = np.reshape(areas, (F,3), order='F')
-        return areas
-
-    def face_areas(self, initialized=False):
-        if self.get_weight('area') == 0:
-            return None
-        if initialized:
-            X = self._X0
-        else:
-            X = self.X
-        F = self.mesh.F
-        N2 = self._N2
-        areas = X[N2+3*F:N2+4*F]
-        return areas
-
-    def force_densities(self):
-        if self.get_weight('equilibrium') == 0:
-            return None
-        E = self.mesh.E
-        N1 = self._N1
-        return self.X[N1+E:N1+2*E]
-
-    #--------------------------------------------------------------------------
-    #                                Errors strings
-    #--------------------------------------------------------------------------
-    def make_errors(self):
-        self.edge_length_error()
-        self.equilibrium_error()
-        self.face_areas_error()
-        self.face_vector_areas_error()
-        self.planarity_error() #self.face_normals_error()
-        self.orthogonal_error()
-        self.anet_error() 
-        #self.geometric_error()
-
-    def planarity_error(self):
-        if self.get_weight('planarity') == 0:
-            return None
-        P = self.mesh.face_planarity()
-        emean = np.mean(P)
-        emax = np.max(P)
-        self.add_error('planarity', emean, emax, self.get_weight('planarity'))
-        print('planarity:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def orthogonal_error(self):
-        if self.get_weight('orthogonal') == 0:
-            return None
-        _,_,t1,t2,_ = self.mesh.get_quad_midpoint_cross_vectors()
-        cos = np.einsum('ij,ij->i',t1,t2)
-        cos0 = np.mean(cos)
-        err = np.abs(cos-cos0)
-        emean = np.mean(err)
-        emax = np.max(err)
-        self.add_error('orthogonal', emean, emax, self.get_weight('orthogonal'))
-        print('orthogonal:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def anet_error(self):
-        if self.get_weight('Anet') == 0 and self.get_weight('Anet_diagnet')==0:
-            return None
-        if self.get_weight('Anet'):
-            name = 'Anet'
-            v,v1,v2,v3,v4 = self.mesh.rrv4f4
-        elif self.get_weight('Anet_diagnet'):
-            name = 'Anet_diagnet'
-            v,v1,v2,v3,v4 = self.mesh.rr_star_corner
-            
-        if self.is_initial:    
-            Nv = self.mesh.vertex_normals()[v]
-        else:
-            num = len(v)
-            c_n = self._Nanet-3*num+np.arange(3*num)
-            Nv = self.X[c_n].reshape(-1,3,order='F')        
-        V = self.mesh.vertices
-        err1 = np.abs(np.einsum('ij,ij->i',Nv,V[v1]-V[v]))
-        err2 = np.abs(np.einsum('ij,ij->i',Nv,V[v2]-V[v]))
-        err3 = np.abs(np.einsum('ij,ij->i',Nv,V[v3]-V[v]))
-        err4 = np.abs(np.einsum('ij,ij->i',Nv,V[v4]-V[v]))
-        Err = err1+err2+err3+err4
-        emean = np.mean(Err)
-        emax = np.max(Err)
-        self.add_error(name, emean, emax, self.get_weight(name))  
-        print('anet:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def face_normals_error(self):
-        if self.get_weight('planarity') == 0:
-            return None
-        N = self.face_normals()
-        N0 = self.face_normals(initialized=True)
-        norm = np.mean(np.linalg.norm(N, axis=1))
-        Err = (np.linalg.norm(N-N0, axis=1)) / norm
-        emean = np.mean(Err)
-        emax = np.max(Err)
-        self.add_error('face_normal', emean, emax, self.get_weight('normal'))
-        print('planarity:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def edge_length_error(self):
-        if self.get_weight('equilibrium') == 0:
-            return None
-        L = self.edge_lengths()
-        L0 = self.edge_lengths(initialized=True)
-        norm = np.mean(L)
-        Err = np.abs(L-L0) / norm
-        emean = np.mean(Err)
-        emax = np.max(Err)
-        self.add_error('edge_length', emean, emax, self.get_weight('edge_length'))
-        print('edge_length:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def face_vector_areas_error(self):
-        if self.get_weight('area') == 0:
-            return None
-        A = self.face_vector_areas()
-        A0 = self.face_vector_areas(initialized=True)
-        norm = np.mean(np.linalg.norm(A, axis=1))
-        Err = (np.linalg.norm(A-A0, axis=1)) / norm
-        emean = np.mean(Err)
-        emax = np.max(Err)
-        self.add_error('face_vector_area', emean, emax, self.get_weight('area'))
-        print('area_vector:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def face_areas_error(self):
-        if self.get_weight('area') == 0:
-            return None
-        A = self.face_areas()
-        A0 = self.face_areas(initialized=True)
-        norm = np.mean(A)
-        Err = (np.abs(A-A0)) / norm
-        emean = np.mean(Err)
-        emax = np.max(Err)
-        self.add_error('face_area', emean, emax, self.get_weight('area'))
-        print('area:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def equilibrium_error(self):
-        if self.get_weight('equilibrium') == 0:
-            return None
-        Err = self.mesh.equilibrium_error()
-        emean = np.mean(Err)
-        emax = np.max(Err)
-        self.add_error('equilibrium', emean, emax, self.get_weight('equilibrium'))
-        print('equilibrium:[mean,max]=','%.3g'%emean,'%.3g'%emax)
-
-    def geometric_error(self):
-        if len(self._errors) == 0:
-            return None
-        n = 0
-        geo_mean = 0
-        geo_max = 0
-        if self.get_weight('planarity') != 0:
-            err = self.get_error('face_normal')
-            geo_mean += err[0]
-            geo_max = max([geo_max, err[1]])
-            n += 1
-        if self.get_weight('equilibrium') != 0:
-            err = self.get_error('edge_length')
-            geo_mean += err[0]
-            geo_max = max([geo_max, err[1]])
-            n += 1
-            if self.get_weight('area') != 0:
-                err = self.get_error('face_vector_area')
-                geo_mean += err[0]
-                geo_max = max([geo_max, err[1]])
-                err = self.get_error('face_area')
-                geo_mean += err[0]
-                geo_max = max([geo_max, err[1]])
-                n += 2
-        if n > 0:
-            geo_mean = geo_mean / n
-        self.add_error('geometric', geo_mean, geo_mean,
-                       self.get_weight('geometric'))
-
-    def geometric_error_string(self):
-        return self.error_string('geometric')
-
-    def equilibrium_error_string(self):
-        return self.error_string('equilibrium')
-
-    def planarity_error_string(self):
-        return self.error_string('planarity')
-
-    def orthogonal_error_string(self):
-        return self.error_string('orthogonal')
+        return self.geolab.current_object.geometry
     
-    def anet_error_string(self):
-        return self.error_string('Anet')
+    @property
+    def meshmanager(self):
+        return self.geolab.current_object
+    
+    # -------------------------------------------------------------------------
+    #
+    # -------------------------------------------------------------------------
+    def geolab_settings(self):
+        self.geolab.height = 600
+        self.geolab.width = 600
+        
+    def object_open(self, file_name, geometry):
+        name = ('mesh_{}').format(self.counter)
+        self.geolab.add_object(geometry, name=name)
+        self.counter += 1
 
-    #--------------------------------------------------------------------------
-    #                                   Utilities
-    #--------------------------------------------------------------------------
+    def object_change(self):
+        pass
 
-    def axial_forces(self):
-        if self.equilibrium != 0:
-            return self.mesh.axial_forces()
+    def object_changed(self): #Huinote should not comment
+        self.optimizer.mesh = self.geolab.current_object.geometry
+        self.meshmanager.update_plot() # Hui add
+
+    def object_save(self, file_name):
+        self.optimizer.save_report(file_name)
+
+    def set_state(self, state):
+        if state != 'kr_interactive':
+            self.interactive = False
+        if state != 'mask_target':
+            self.mask_target = False
+     
+    # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    #                     GP-ALGORITHM: Common used:
+    # -------------------------------------------------------------------------
+    @on_trait_change('hide_face')
+    def plot_hide_faces(self):
+        if self.hide_face:
+            self.meshmanager.hide_faces()
         else:
-            return np.zeros(self.mesh.E)
+            self.meshmanager.plot_faces(color='white',#(100, 193, 151),#'grammarly',#,,
+                                        glossy=1,
+                                        opacity=1,
+                                        )#color=(192,174,136)turquoise
 
-    def force_resultants(self):
-        return self.mesh.force_resultants()
+    @on_trait_change('hide_edge')
+    def plot_hide_edges(self):
+        if self.hide_edge:
+            self.meshmanager.hide_edges()
+        else:
+            self.meshmanager.plot_edges(color=(157,157,157),##(77,83,87),##
+                                        tube_radius=0.4*self.meshmanager.r)
+            #geo:red:(240,114,114);asy:blue:(98,113,180)
+            #self.meshmanager.plot_edges(color =(98,113,180),tube_radius=1.2*self.meshmanager.r)
 
-    def applied_loads(self):
-        return self.mesh.applied_loads()
+    @on_trait_change('fix_all')
+    def plot_and_fix_all_vertices(self):
+        name = 'fixall'
+        v = np.arange(self.mesh.V)
+        #v = self.mesh.patch_matrix[:-2,:-2].flatten()
+        r = self.meshmanager.r
+        if self.fix_all:
+            self.mesh.fix(v)
+            V = self.mesh.vertices[v]
+            self.meshmanager.plot_glyph(points=V,radius=2*r,color='r',name=name)
+        else:
+            self.mesh.unfix(v)
+            self.meshmanager.remove(name)
+
+    @on_trait_change('fix_boundary')
+    def plot_and_fix_boundary(self):
+        "fixed_vertices='boundary"
+        name = 'fixb'
+        v,B = self.mesh.get_all_boundary_vertices()
+        r = self.meshmanager.r
+        if self.fix_boundary:
+            self.mesh.fix(v)
+            self.meshmanager.plot_glyph(points=B,radius=2*r,color='r',name=name)
+        else:
+            self.mesh.unfix(v)
+            self.meshmanager.remove(name)  
+            
+    @on_trait_change('fix_boundary_i')
+    def plot_and_fix_boundary_i(self):
+        name = 'fixbi'
+        if len(self.meshmanager.selected_edges)!=0:
+            e = self.meshmanager.selected_edges 
+        else:
+            print('\n Please selecte an edge first!')        
+        v,B = self.mesh.get_i_boundary_vertices(e[0],by_corner2=True) # need to choose
+        r = self.meshmanager.r
+        if self.fix_boundary_i:
+            self.mesh.fix(v)
+            self.meshmanager.plot_glyph(points=B,radius=2*r,color='r',name=name)
+        else:
+            self.mesh.unfix(v)
+            self.meshmanager.remove(name)   
+
+    @on_trait_change('fix_corner')
+    def plot_and_fix_corner(self):
+        name = 'fixc'
+        v = self.mesh.corner #get_all_corner_vertices()
+        C = self.mesh.vertices[v]
+        if self.fix_corner:
+            self.mesh.fix(v)
+            r = self.meshmanager.r
+            self.meshmanager.plot_glyph(points=C,radius=2*r,color='r',name=name)
+        else:
+            self.mesh.unfix(v)
+            self.meshmanager.remove(name)
+
+    @on_trait_change('fix_button')
+    def fix_current_handler_selected_vertex(self):
+        name = 'fixv'
+        v =  self.meshmanager.selected_vertices
+        print(v)
+        #v = np.array([14, 15, 16, 572, 573, 574])
+        self._fixed_vertex.extend(v)
+        self.mesh.fix(self._fixed_vertex)
+        C = self.mesh.vertices[self._fixed_vertex]
+        r = self.meshmanager.r
+        self.meshmanager.plot_glyph(points=C,radius=2.5*r,
+                                    shading = True,glossy=1,
+                                    color=(255,144,64), ##red(210,92,106) #geo:red:(240,114,114);asy:blue:(98,113,180)
+                                    name=name)#(210,92,106) #()(98,113,180)
+
+    @on_trait_change('unfix_button')
+    def unfix_current_handler_selected_vertex(self):
+        name = 'fixv'
+        v = self.meshmanager.selected_vertices
+        self._fixed_vertex.remove(v[0])
+        self.mesh.unfix(v)
+        #self.meshmanager.remove(name)
+        C = self.mesh.vertices[self._fixed_vertex]
+        r = self.meshmanager.r
+        self.meshmanager.plot_glyph(points=C,radius=2*r,color='r',name=name)
+
+    @on_trait_change('clearfix_button')
+    def clearfix_current_handler_selected_vertex(self):
+        name = 'fixv'
+        self.mesh.unfix(self._fixed_vertex)
+        self._fixed_vertex = []
+        self.meshmanager.remove(name)
+
+    @on_trait_change('boundary_z0')
+    def plot_and_bdry_z0(self):
+        name = 'bdpt'
+        v = np.array([119,68],dtype=int)
+        C = self.mesh.vertices[v]
+        if self.boundary_z0:
+            r = self.meshmanager.r
+            self.meshmanager.plot_glyph(points=C,radius=2*r,
+                                        shading = True,glossy=1,
+                                        color='g',name=name)
+        else:
+            self.meshmanager.remove(name)
+
+
+    @on_trait_change('selected_z0')
+    def set_selected_vertices_xy_plane(self):
+        name='s_z0'
+        if self.selected_z0:
+            self.optimizer.set_weight('selected_z0', 0.005)
+            #print(self.meshmanager.selected_vertices)
+            #ind = self.meshmanager.selected_vertices
+            ind = np.array([985, 341, 426, 846, 629, 702, 264])
+            self.optimizer.selected_v = ind
+            vv = self.mesh.vertices[ind]
+            self.meshmanager.plot_glyph(points=vv,glossy=1,
+                                        radius=2*self.meshmanager.r,
+                                        color = 'yellow',name=name)   
+        else:
+            self.meshmanager.remove(name)
+            self.optimizer.set_weight('selected_z0', 0)
+       
+    @on_trait_change('selected_y0')
+    def set_selected_vertices_xz_plane(self):
+        name='s_y0'
+        if self.selected_y0:
+            self.optimizer.set_weight('selected_y0', 0.005)
+            self.optimizer.selected_v = self.meshmanager.selected_vertices
+            vv = self.mesh.vertices[self.meshmanager.selected_vertices]
+            self.meshmanager.plot_glyph(points=vv,glossy=1,
+                                        radius=2*self.meshmanager.r,
+                                        color = 'yellow',name=name)   
+        else:
+            self.meshmanager.remove(name)
+            self.optimizer.set_weight('selected_y0', 0)
+  
+        # ---------------------------------------------------------------------
+        #                     Fairness weights:
+        # ---------------------------------------------------------------------
+    @on_trait_change('fair1')
+    def set_fairness_1(self):
+        self.mesh_fairness = self.boundary_fairness = 0.1
+        self.tangential_fairness = self.spring_fairness = 0.1
+    @on_trait_change('fair01')
+    def set_fairness_01(self):
+        self.mesh_fairness = self.boundary_fairness = 0.01
+        self.corner_fairness = 0.01
+        self.tangential_fairness = self.spring_fairness = 0.01
+    @on_trait_change('fair001')
+    def set_fairness_001(self):
+        self.mesh_fairness = self.boundary_fairness = 0.005
+        self.corner_fairness = 0.005
+        self.tangential_fairness = self.spring_fairness = 0.0000
+        self.fairness_diagmesh = 0.003
+    @on_trait_change('fair0001')
+    def set_fairness_0001(self):
+        self.mesh_fairness = self.boundary_fairness = 0.0005
+        self.corner_fairness = 0.0008
+        self.tangential_fairness = self.spring_fairness = 0.0000
+        self.fairness_diagmesh = 0.0005
+    @on_trait_change('fair0')
+    def set_fairness_0(self):
+        self.mesh_fairness = self.boundary_fairness = 0
+        self.corner_fairness = 0
+        self.tangential_fairness = self.spring_fairness =  0
+        self.fairness_diagmesh = 0
+        self.fairness_4diff = 0
+        self.fairness_diag_4diff = 0
+
+    @on_trait_change('fairness_4diff')
+    def set_fairness_4differential(self):
+        if self.fairness_4diff:
+            self.mesh_fairness = self.boundary_fairness = 0
+            self.fairness_diagmesh = 0  
+        #self.corner_fairness = 0
+        #self.tangential_fairness = self.spring_fairness =  0
+
+    @on_trait_change('close5')
+    def set_close_5(self):
+        self.reference_closeness = 0.5
+        self.self_closeness = 0.5
+    @on_trait_change('close1')
+    def set_close_1(self):
+        self.reference_closeness = 0.1
+        self.self_closeness = 0.1
+    @on_trait_change('close05')
+    def set_close_05(self):
+        self.reference_closeness = 0.05
+        self.self_closeness = 0.05
+    @on_trait_change('close01')
+    def set_close_01(self):
+        self.reference_closeness = 0.01
+        self.self_closeness = 0.01
+    @on_trait_change('close0')
+    def set_close_0(self):
+        self.reference_closeness = 0
+        self.self_closeness = 0
+        self.boundary_glide = 0
+
+    # -------------------------------------------------------------------------
+    #                      Change topology (partial net/web)
+    # ------------------------------------------------------------------------- 
+    @on_trait_change('set_refer_mesh')
+    def set_refermesh(self):
+        if self.set_refer_mesh:
+            if self.geolab.last_object is not None:
+                #self.geolab.last_object.geometry.set_reference()
+                self.mesh.reference_mesh = self.geolab.last_object.geometry
+        else:
+            self.mesh.reference_mesh = self.mesh.copy_mesh()#self.mesh
+        rm = self.mesh.reference_mesh
+        "get the index of boundary vertices:"
+        ind = rm.boundary_curves(corner_split=False)[0]    
+        "refine the boundary vertices"
+        Ver = rm.vertices[ind]
+        poly = Polyline(Ver,closed=True)  
+        N = 5
+        poly.refine(N)
+        self.ref_glide_bdry_polyline = poly
+        self.optimizer.glide_reference_polyline = self.ref_glide_bdry_polyline
+        
+    @on_trait_change('show_refer_mesh')
+    def plot_reference_mesh(self):
+        self.geolab.last_object.hide_faces()
+        self.geolab.last_object.hide_edges()
+        name = 'refer_mesh'
+        if self.show_refer_mesh:
+            try:
+                rm = self.mesh.reference_mesh
+            except:
+                self.set_refermesh()
+                rm = self.mesh.reference_mesh
+            showe = Edges(rm,color ='black',tube_radius=0.5*self.meshmanager.r,
+                          #color=(157,157,157),tube_radius=0.3*self.meshmanager.r,
+                          name=name+'e')
+            # showf = Faces(rm,color = (77,77,77),
+            #               opacity=0.1,
+            #               name=name+'f')
+            self.meshmanager.add([showe])
+        else:
+            self.meshmanager.remove(name+'e')
+            self.meshmanager.remove(name+'f')
+            
+    @on_trait_change('show_ref_mesh_boundary')
+    def plot_reference_mesh_boundary(self):
+        name = 'ref_mesh_pl'
+        if self.show_ref_mesh_boundary:
+            self.set_refermesh()
+            rm = self.mesh.reference_mesh
+            if True:
+                poly = self.ref_glide_bdry_polyline
+            else:
+                poly = rm.boundary_polylines() ##Note: has problem!
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=0.7*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)
+
+    def update_ith_boundary(self,N=3):
+        self.optimizer.i_glide_bdry_crv = []
+        self.optimizer.i_glide_bdry_ver = []
+        if self.glide_1st_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=0)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+        if self.glide_2nd_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=1)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+        if self.glide_3rd_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=2)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+        if self.glide_4th_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=3)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)            
+        if self.glide_5th_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=4)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)   
+        if self.glide_6th_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=5)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)   
+        if self.glide_7th_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=6)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)   
+        if self.glide_8th_bdry:
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=7)
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=N)
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)               
+    @on_trait_change('glide_1st_bdry')
+    def plot_1st_boundary(self):
+        name = '1stB'  
+        if self.glide_1st_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=0)
+            print(v)
+            x = self.mesh.vertices[v][:,0]
+            y = self.mesh.vertices[v][:,1]
+            z = self.mesh.vertices[v][:,2]
+            print('x:',np.mean(x),np.min(x),np.max(x))
+            print('y:',np.mean(y),np.min(y),np.max(y))
+            print('z:',np.mean(z),np.min(z),np.max(z))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)  
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+            ##print(self.mesh.boundary_curves(True),self.mesh.get_a_closed_boundary())
+        else:
+            self.meshmanager.remove(name)
+      
+    @on_trait_change('glide_2nd_bdry')
+    def plot_2nd_boundary(self):
+        name = '2ndB' 
+        if self.glide_2nd_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=1)
+            print(v)
+            z = self.mesh.vertices[v][:,2]
+            print(np.mean(z),np.min(z),np.max(z))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)  
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)
+
+    @on_trait_change('glide_3rd_bdry')
+    def plot_3rd_boundary(self):
+        name = '3rdB'   
+        if self.glide_3rd_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=2)
+            print(v)
+            z = self.mesh.vertices[v][:,2]
+            print(np.mean(z),np.min(z),np.max(z))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)  
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)
+    @on_trait_change('glide_4th_bdry')
+    def plot_4th_boundary(self):
+        name = '4thB'  
+        if self.glide_4th_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=3)
+            print(v)
+            x = self.mesh.vertices[v][:,0]
+            y = self.mesh.vertices[v][:,1]
+            print('4th-x:',np.mean(x),np.min(x),np.max(x))
+            print('4th-y:',np.mean(y),np.min(y),np.max(y))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)   
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)
+    @on_trait_change('glide_5th_bdry')
+    def plot_5th_boundary(self):
+        name = '5thB'  
+        if self.glide_5th_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=4)
+            print(v)
+            y = self.mesh.vertices[v][:,1]
+            print(np.mean(y),np.min(y),np.max(y))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)   
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)
+    @on_trait_change('glide_6th_bdry')
+    def plot_6th_boundary(self):
+        name = '6thB'  
+        if self.glide_6th_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=5)
+            print(v)
+            y = self.mesh.vertices[v][:,1]
+            print(np.mean(y),np.min(y),np.max(y))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)   
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)
+    @on_trait_change('glide_7th_bdry')
+    def plot_7th_boundary(self):
+        name = '7thB'  
+        if self.glide_7th_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=6)
+            print(v)
+            y = self.mesh.vertices[v][:,1]
+            print(np.mean(y),np.min(y),np.max(y))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)   
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)   
+    @on_trait_change('glide_8th_bdry')
+    def plot_8th_boundary(self):
+        name = '8thB'  
+        if self.glide_8th_bdry:
+            self.update_ith_boundary(N=3)
+            v,B = self.mesh.get_i_boundary_vertex_indices(i=7)
+            print(v)
+            y = self.mesh.vertices[v][:,1]
+            print(np.mean(y),np.min(y),np.max(y))
+            poly = Polyline(B,closed=False)  
+            poly.refine(steps=3)   
+            self.optimizer.i_glide_bdry_crv.append(poly)
+            self.optimizer.i_glide_bdry_ver.append(v)
+            self.meshmanager.plot_polyline(polyline=poly,glossy=1,
+                                           tube_radius=1.5*self.meshmanager.r,
+                                           color = 'r',name=name)
+        else:
+            self.meshmanager.remove(name)   
+            
+    # -------------------------------------------------------------------------
+    #                      Orthogonal NET: Weights + Plotting:
+    # -------------------------------------------------------------------------
+
+    @on_trait_change('button_clear_constraint')
+    def set_clear_webs(self):
+        self.planarity = False
+        self.orthogonal = False
+        self.equilibrium = False
+
+        self.Anet = False
+        self.Anet_diagnet = False
+
+        self.Snet = False
+        self.Snet_diagnet = False
+        self.Snet_constR = False
+        self.if_uniqR = False
+        
+        self.multinets_orthogonal = False
+        self.weigth_multinets_orthogonal = 0.0
+        # self.if_set_weight = False
+        
+        self.optimizer.set_weight('unit_edge_vec', 0)
+        self.optimizer.set_weight('unit_diag_edge_vec', 0)
+        
+    @on_trait_change('button_minimal_mesh')
+    def set_orthogonal_Anet(self): 
+        self.orthogonal = True  
+        self.Anet = True
+
+    @on_trait_change('button_CMC_mesh')
+    def set_CMC_mesh(self): 
+        self.orthogonal = True  
+        self.Snet = True
+        self.Snet_orient = True
+        self.Snet_constR = True
+
+    @on_trait_change('button_principal_mesh')
+    def set_principal_mesh(self): 
+        self.orthogonal = True  
+        self.planarity = True
+        
+    @on_trait_change('button_funicularity')
+    def set_funicularity(self): 
+        self.orthogonal = True  
+        self.equilibrium = True
+    
+    @on_trait_change('button_Multinets_Orthogonal')
+    def set_multinets_orthogonal(self):
+        self.multinets_orthogonal = True
+        # self.if_set_weight =True
+        self.weigth_multinets_orthogonal = 1.0
+
+    #---------------------------------------------------------        
+    #                       Ploting
+    #---------------------------------------------------------
+    @on_trait_change('show_isogonal_face_based_vector')
+    def plot_isogonal_facebased_cross_vector(self):
+        name = 'isg_f_v'
+        if self.show_isogonal_face_based_vector:
+            _,_,t1,t2,an = self.mesh.get_quad_midpoint_cross_vectors()
+            ang = np.arccos(np.einsum('ij,ij->i',t1,t2))/np.pi*180
+            print('\n mean_angle =',np.mean(ang))
+            print(' max_angle   =',np.max(ang))
+            self.meshmanager.plot_vectors(anchor=an,vectors=t1,
+                                          position = 'center',
+                                          glyph_type = 'line',
+                                          color = 'b',
+                                          name = name+'11')
+            self.meshmanager.plot_vectors(anchor=an,vectors=t2,
+                                          position = 'center',
+                                          glyph_type = 'line',
+                                          color = 'r',
+                                          name = name+'22')
+        else:
+            self.meshmanager.remove([name+'11',name+'22'])              
+
+            
+    @on_trait_change('show_midpoint_edge1,show_midpoint_edge2')
+    def plot_midpoint_edges(self):
+        "same was as plot_isogonal_facebased_cross_vector; but different visulization"
+        name = 'mid_edge'
+        if self.show_midpoint_edge1 or self.show_midpoint_edge2:
+            pl1,pl2 = self.mesh.get_quad_midpoint_cross_vectors(plot=True)
+            if self.show_midpoint_edge1:
+                self.meshmanager.plot_polyline(pl1,
+                                               tube_radius=1*self.meshmanager.r,
+                                               color=(162,20,47),glossy=0.8,
+                                               name = name+'1')
+            else:
+                self.meshmanager.remove([name+'1'])  
+            if self.show_midpoint_edge2 and pl2 is not None:
+                self.meshmanager.plot_polyline(pl2,
+                                               tube_radius=1*self.meshmanager.r,
+                                               color=(20,162,47),glossy=0.8,
+                                               name = name+'2')
+            else:
+                self.meshmanager.remove([name+'2'])                                         
+        else:
+            self.meshmanager.remove([name+'1',name+'2'])      
+
+    @on_trait_change('show_midpoint_polyline1,show_midpoint_polyline2')
+    def plot_midpoint_polylines(self):
+        name = 'mid_pl'
+        if self.show_midpoint_polyline1 or self.show_midpoint_polyline2:
+            pl1,pl2 = self.mesh.get_quad_midline()
+            if self.show_midpoint_polyline1:
+                self.meshmanager.plot_polyline(pl1,
+                                               tube_radius=1*self.meshmanager.r,
+                                               color=(162,20,47),glossy=0.8,
+                                               name = name+'1')
+            else:
+                self.meshmanager.remove([name+'1'])  
+            if self.show_midpoint_polyline2 and pl2 is not None:
+                self.meshmanager.plot_polyline(pl2,
+                                               tube_radius=1*self.meshmanager.r,
+                                               color=(20,162,47),glossy=0.8,
+                                               name = name+'2')
+            else:
+                self.meshmanager.remove([name+'2'])                                         
+        else:
+            self.meshmanager.remove([name+'1',name+'2'])     
+            
+    @on_trait_change('show_midline_mesh')
+    def plot_midline_mesh_checkboard(self):
+        name = 'mid_mesh'
+        if self.show_midline_mesh:
+            dm = self.mesh.get_midline_mesh()
+            self.save_new_mesh = dm
+            self.label = name
+            showe = Edges(dm,color=(0,59,117),
+                          tube_radius=0.6*self.meshmanager.r,
+                          glossy=0.8,
+                          name=name+'e')
+            self.meshmanager.add([showe])
+        else:
+            self.meshmanager.remove([name+'e',name+'f'])   
+
+    @on_trait_change('show_multinets_diagonals') 
+    def plot_multinets_diagonals(self):
+        name = 'multi_diagonal'
+        if self.show_multinets_diagonals:
+            pl1,pl2 = self.mesh.Get_Diagonals_of_Multinets()
+            self.meshmanager.plot_polyline(pl1,
+                                           tube_radius=0.5*self.meshmanager.r,
+                                           color=(138,43,226),glossy=1,
+                                           name = name+'1')
+            
+            self.meshmanager.plot_polyline(pl2,
+                                            tube_radius=0.5*self.meshmanager.r,
+                                            color=(255,215,0),glossy=1,
+                                            name = name+'2')
+            
+        else:
+            self.meshmanager.remove([name+'1',name+'2'])  
+
+    #---------------------------------------------------------        
+    #               Anet / Snet - Ploting
+    #---------------------------------------------------------
+    @on_trait_change('show_snet_center')
+    def plot_snet_center(self):
+        name = 'snetc'
+        if self.show_snet_center:
+            if self.Snet:
+                is_diag = False
+            elif self.Snet_diagnet:
+                is_diag = True
+            C,data = self.optimizer.get_snet_data(is_diag,center=True)
+            r = self.meshmanager.r
+            self.meshmanager.plot_glyph(points=C,vertex_data=data,
+                                        color='blue-red',lut_range='0:+',
+                                        radius=2*r,name=name)
+        else:
+            self.meshmanager.remove(name)
+
+    @on_trait_change('show_snet_normal')
+    def plot_snet_normal(self):
+        name = 'snetn'
+        if self.show_snet_normal:
+            if self.Snet:
+                is_diag = False
+            elif self.Snet_diagnet:
+                is_diag = True
+            an,N = self.optimizer.get_snet_data(is_diag,normal=True)
+            self.meshmanager.plot_vectors(anchor=an,vectors=N,#normal neg or pos
+                                          position='tail',color=(162,20,47),
+                                          name=name)
+            
+            N0 = self.mesh.vertex_normals()
+            N0[self.mesh.ver_rrv4f4] = N
+            self.snet_normal = N0
+        else:
+            self.meshmanager.remove(name)
+            
+    @on_trait_change('show_snet_tangent')
+    def plot_snet_tangent(self):
+        name = 'snett'
+        if self.show_snet_tangent:
+            if self.Snet:
+                is_diag = False
+            elif self.Snet_diagnet:
+                is_diag = True
+            an,t1,t2 = self.optimizer.get_snet_data(is_diag,tangent=True)
+
+            self.meshmanager.plot_vectors(anchor=an,vectors=t1,position='center',
+                                          glyph_type = 'line',color='black',
+                                          name=name+'1')
+            self.meshmanager.plot_vectors(anchor=an,vectors=t2,position='center',
+                                          glyph_type = 'line',color='black',
+                                          name=name+'2')
+        else:
+            self.meshmanager.remove([name+'1',name+'2'])  
+    
+    @on_trait_change('show_vs_sphere')
+    def plot_vertex_star_sphere(self):
+        "S-net: vs-common-sphere"
+        name='vs_sphere'
+        v = self.meshmanager.selected_vertices
+        if len(v) !=0:
+            if self.show_vs_sphere:
+                vv = np.array(v)
+                C,r,Vneib = get_vs_interpolated_sphere(self.mesh.vertices,vv,self.mesh.ringlist)
+                self.meshmanager.plot_glyph(points=Vneib,color=(123,123,0),
+                                            name=name+'vi') 
+                self.meshmanager.plot_glyph(points=C,color='black',
+                                            name=name+'c')
+                s = get_sphere_packing(C,r,Fa=50,Fv=50)
+                shows = Faces(s,color = 'gray_40',opacity=0.3,name=name)
+                self.meshmanager.add(shows)
+            else:
+                self.meshmanager.remove([name,name+'vi',name+'c'])
+        else:
+            print('Select a vertex first.')     
+
+    #--------------------------------------------------------------------------
+    #                         Printing / Check
+    #--------------------------------------------------------------------------         
+    @on_trait_change('print_orthogonal')
+    def print_orthogonal_data(self):
+        pass
+        #angle_min, angle_mean, angle_max = 
+        #print('angle:[min,mean,max]=','%.3f'%angle_min,'%.3f'%angle_mean,'%.3f'%angle_max)
+
+    @on_trait_change('print_computation')
+    def print_computation_info(self):
+        print('No. of all vertices: ', self.mesh.V)
+        print('No. of all faces: ', self.mesh.F)
+        print('No. of all edges: ', self.mesh.E)
+        
+        print('No. of rr_vertices: ', self.mesh.num_rrv4f4)
+        print('No. of rr_quad_faces: ', self.mesh.num_rrf) #circular mesh
+        
+        print('#variables: ', len(self.optimizer.X))
+        print('#constraints: ', len(self.optimizer._r))
+        #print('time[s] per iteration: ',  )
+    #--------------------------------------------------------------------------
+    #                                    Save txt / obj
+    #--------------------------------------------------------------------------
+    @on_trait_change('save_button')
+    def save_file(self):
+        name = ('{}').format(self.label)
+        if self.save_new_mesh is None:
+            #self.save_new_mesh = self.mesh
+            pass
+ 
+        save_path =  'objs'     
+        completeName = os.path.join(save_path, name)   
+        self.save_new_mesh.make_obj_file(completeName)
+
+        print('\n\n NOTE: <'+self.label+'> mesh has been saved in <'+completeName+'>\n')
+    # -------------------------------------------------------------------------
+    #                              Settings
+    # -------------------------------------------------------------------------
+    def set_settings(self):
+        # ---------------------------------------------------------------------
+        #                     GP-ALGORITHM common used:
+        # ---------------------------------------------------------------------
+        self.optimizer.threshold = 1e-20
+        #self.optimizer.itera_run = self.itera_run
+        #self.optimizer.iterations = self.itera_run
+        self.optimizer.epsilon = self.epsilon
+        self.optimizer.step = self.step
+        self.optimizer.fairness_reduction = self.fairness_reduction
+        
+        self.optimizer.add_weight('mesh_fairness', self.mesh_fairness)
+        self.optimizer.add_weight('tangential_fairness', self.tangential_fairness)
+        self.optimizer.add_weight('boundary_fairness', self.boundary_fairness)
+        self.optimizer.add_weight('corner_fairness', self.corner_fairness)
+        self.optimizer.add_weight('spring_fairness', self.spring_fairness)
+        self.optimizer.add_weight('fairness_4diff', self.fairness_4diff)
+        self.optimizer.add_weight('fairness_diag_4diff', self.fairness_diag_4diff)
+        self.optimizer.add_weight('fairness_diagmesh', self.fairness_diagmesh)
+ 
+        self.optimizer.add_weight('reference_closeness', self.reference_closeness)
+        self.optimizer.add_weight('self_closeness', self.self_closeness)
+        
+        self.optimizer.add_weight('boundary_glide', self.boundary_glide)
+        self.optimizer.add_weight('i_boundary_glide', self.i_boundary_glide)
+        self.optimizer.add_weight('fixed_vertices', self.weight_fix)
+        self.optimizer.add_weight('fix_point',  self.fix_p_weight)
+        self.optimizer.add_weight('fix_corners',  self.fix_corner)
+        self.optimizer.set_weight('sharp_corner',  self.sharp_corner) 
+        self.optimizer.set_weight('z0', self.z0)
+        self.optimizer.set_weight('boundary_z0', self.boundary_z0)
+        
+        # ---------------------------------------------------------------------
+        self.optimizer.set_weight('planarity', self.planarity)
+        self.optimizer.set_weight('orthogonal',  self.orthogonal*1)
+        self.optimizer.set_weight('equilibrium',  self.equilibrium)
+        
+        self.optimizer.set_weight('Anet',  self.Anet)
+        self.optimizer.set_weight('Anet_diagnet',  self.Anet_diagnet)
+
+        self.optimizer.set_weight('Snet', self.Snet)
+        self.optimizer.set_weight('Snet_diagnet', self.Snet_diagnet)
+        self.optimizer.set_weight('Snet_orient', self.Snet_orient)
+        self.optimizer.set_weight('Snet_constR', self.Snet_constR)
+        self.optimizer.if_uniqradius = self.if_uniqR
+        self.optimizer.assigned_snet_radius = self.Snet_constR_assigned
+        
+        self.optimizer.set_weight('multinets_orthogonal', self.weigth_multinets_orthogonal)
+
+    @on_trait_change('print_error')
+    def print_errors(self):
+        self.optimizer.make_errors()
+    # -------------------------------------------------------------------------
+    #                         Reset + Optimization
+    # -------------------------------------------------------------------------
+    def reinitialize_constraints(self):# Hui: to set
+        self.optimizer.is_initial = True 
+        #self.planarity = False
+        #self.orthogonal = False
+
+    @on_trait_change('reinitialize')
+    def reinitialize_optimizer(self):
+        self.reinitialize_constraints()
+        self.set_settings()
+        self.optimizer.reinitialize = True
+        self.optimizer.initialization() # Hui add
+        self.mesh.vertices = self.mesh.vertices_0 # Huinote:add
+        self.meshmanager.update_plot()
+        print('\n---------------------\n')
+
+    def updating_plot(self):
+        pass
+
+    def optimization_step(self):
+        if not self.interactive:
+            self.handler.set_state(None)
+        self.set_settings()
+        self.optimizer.optimize()
+        #self.print_error()
+        self.updating_plot()
+        self.meshmanager.update_plot()
+        if self.fairness_reduction !=0:
+            self.mesh_fairness = self.mesh_fairness/(10**(self.fairness_reduction))
+            self.tangential_fairness = self.tangential_fairness/(10**
+                                        (self.fairness_reduction))
+            self.boundary_fairness = self.boundary_fairness/(10**
+                                    (self.fairness_reduction))
+            self.spring_fairness = self.spring_fairness/(10**
+                                    (self.fairness_reduction))    
+
+    @on_trait_change('optimize')
+    def optimize_mesh(self):
+        #import time
+        #start_time = time.time()
+        itera = self.itera_run
+        self.meshmanager.iterate(self.optimization_step, itera) # note:iterations from gpbase.py
+        self.meshmanager.update_plot()
+        
+        #print('time[s] per iteration:','%.3g s' %((time.time() - start_time)/itera))
+            
+    @on_trait_change('interactive')
+    def interactive_optimize_mesh(self):
+        self.handler.set_state('kr_interactive')
+        if self.interactive:
+            def start():
+                self.mesh.handle = self.meshmanager.selected_vertices
+            def interact():
+                self.meshmanager.iterate(self.optimization_step,1)
+            def end():
+                self.meshmanager.iterate(self.optimization_step,5)
+            self.meshmanager.move_vertices(interact,start,end)
+        else:
+            self.mesh.handle = None
+            self.meshmanager.move_vertices_off()
