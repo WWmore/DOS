@@ -4,6 +4,17 @@
 |:-:|:-:|:-:|:-:|
 | Numpy,SciPy,Mayavi,[geometrylab](https://github.com/WWmore/geometrylab) | [Discrete Orthogonal Structures ](https://github.com/WWmore/DOS#discrete-orthogonal-structures) | [![GitHub license](https://img.shields.io/github/license/alshedivat/al-folio?color=blue)](https://tlo.mit.edu/researchers-mit-community/protect/software-open-source-protection)|  [![doc](https://img.shields.io/badge/doc-readthedocs-blueviolet)](https://www.huiwang.me/mkdocs-archgeo/) |
 
+ArchGeo is a geometry processing library with integrated visualization and optimization capabilities, designed to support efficient design and construction by leveraging Discrete Differential Geometry (DDG).
+
+Written in Python, it uses a half-edge data structure to handle various meshes. It offers visualization and rendering of geometric objects such as point clouds and curves, alongside mesh optimization design. 
+For visualization, it utilizes the Python-based [Mayavi3D library](https://mayavi.readthedocs.io/zh-cn/latest/index.html), and for optimization, it focuses on quadrilateral meshes using a Guided Projection algorithm and an efficient solver.
+
+Comprehensive [documentation for ArchGeo](https://www.huiwang.me/mkdocs-archgeo/) is available, covering core aspects like installation and optimization algorithms.
+![Dodumentation](assets/docupage.png)
+
+This GitHub Repository showcases orthogonal quad mesh optimization algorithms from the "Discrete Orthogonal Structures" project, with more features to be open-sourced soon.
+
+
 # Discrete Orthogonal Structures 
 
 <!-- <img src="assets/AG.png" align="right" width="50"> -->
@@ -114,7 +125,7 @@ Once above installation failed because of versions conflict, then try below inst
 
 
 ## Mesh Optimization
-The optimizer uses Guided Projection Algorithm, a Gauss-Newton algorithm, as dissused in the paper [Form-finding with polyhedral meshes made simple](https://doi.org/10.1145/2601097.2601213), in a Python environment to produce quadmesh models.
+It utilizes the Guided Projection Algorithm, a Gauss-Newton algorithm, as discussed in the paper [Form-finding with polyhedral meshes made simple](https://doi.org/10.1145/2601097.2601213), to generate quadmesh models.
 
 <details>
 <summary><span style="font-weight: bold;">Abstract of the paper 'Form-finding with Polyhedral Meshes Made Simple'</span></summary>
@@ -126,9 +137,7 @@ The optimizer uses Guided Projection Algorithm, a Gauss-Newton algorithm, as dis
 
 ## ArchGeo Visualization
 
-
-Python programming visualization for optimization problems in the Architectural Geometry / Geometry Processing area.
-This implementation major works on quad meshes.
+This implementation primarily focuses on optimization problems involving quad meshes, providing a powerful tool for researchers and practitioners in the fields of Architectural Geometry and Geometry Processing. The code is designed to facilitate the exploration and solution of complex geometric optimization tasks, making it easier to visualize and understand the underlying processes and results.
 
 
 ![File](assets/mayavi.png)
@@ -156,11 +165,21 @@ This implementation major works on quad meshes.
 
 ------
 ## Contributions
-If you find this codebase and paper helpful in your research, welcome to cite the paper and give a :star: .
-This project was initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en). 
-It is still under development. 
-Please feel free to push issues or submit requests to contribute to our codebase.
-Welcome to work together to make a Grasshopper plugin if you are interested. For any commercial uses, please contact us.
-Hoping this codebase is helpful for your research work. 
 
-Welcome to the research collaborations!
+<!-- ### Project Background and Evolution -->
+ArchGeo, initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en), originated from TU Wien's research in architectural geometry and has since evolved through projects at KAUST. This journey has resulted in around 20 top-tier academic publications.
+
+<!-- ### Core Algorithms and Applications -->
+Its core algorithms can be integrated with Rhino3D's Grasshopper plugin, significantly aiding in the design of [large-scale grid shells](https://github.com/WWmore/compute.rhino3d). This integration exemplifies ArchGeo's pivotal role in advancing geometric design and construction.
+
+<!-- ### Features and User Benefits -->
+ArchGeo is a user-friendly, Python-based geometry processing tool with an intuitive GUI for efficient geometric design. It serves as an excellent entry point for research in DDG, CAD, and CG.
+<!-- ### Future Goals -->
+Looking ahead, ArchGeo aims to expand its industrial software applications, particularly in education and research. It also seeks to deepen its integration with industrial tools like Rhino3D and support geometric optimization across various sectors.
+
+<!-- ### Call for Collaboration -->
+If you find our codebase and paper valuable for your research, we encourage you to cite the paper and star :star: our GitHub repository. ArchGeo is continuously being developed, and we welcome any issues or contribution requests. 
+
+We also invite collaboration on developing a Grasshopper plugin. 
+For commercial use, kindly contact us. 
+We hope this codebase proves useful for your research endeavors.
