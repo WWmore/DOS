@@ -52,7 +52,7 @@ if __name__ == '__main__':
     #----------------------------------------
 
     '''Instantiate the sample component'''
-    from opt_gui_orthonet import OrthoNet
+    from dos_3_opt import OrthoNet
     component = OrthoNet()
 
     '''Instantiate the main geolab application'''

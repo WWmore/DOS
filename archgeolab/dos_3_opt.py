@@ -27,7 +27,7 @@ from geometrylab.vtkplot.edgesource import Edges
 from geometrylab.vtkplot.facesource import Faces
 from geometrylab.geometry import Polyline
 
-from guidedprojection_orthonet import GP_OrthoNet
+from dos_2_gui import GP_OrthoNet
 from archgeolab.archgeometry.conicSection import get_sphere_packing,\
     get_vs_interpolated_sphere
 

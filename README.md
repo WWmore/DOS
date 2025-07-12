@@ -172,7 +172,7 @@ Its core algorithms can be integrated with Rhino3D's Grasshopper plugin, signifi
 
 <!-- ### Features and User Benefits -->
 ArchGeo is a user-friendly, Python-based geometry processing tool with an intuitive GUI for efficient geometric design. It serves as an excellent entry point for research in DDG, CAD, and CG.
-Looking ahead, ArchGeo aims to expand its industrial software applications, particularly in education and research. It also seeks to deepen its integration with industrial tools like Rhino3D and support geometric optimization across various sectors.
+Looking ahead, ArchGeo aims to expand its industrial software applications, particularly in education and research. It also seeks to deepen its integration with industrial tools like Rhino3D and support geometric optimization across various applications.
 
 <!-- ### Call for Collaboration -->
 If you find our codebase and paper valuable for your research, we encourage you to cite the paper and star :star: our GitHub repository. ArchGeo is continuously being developed, and we welcome any issues or contribution requests. 
