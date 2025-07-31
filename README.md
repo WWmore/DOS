@@ -106,19 +106,27 @@ Once above installation failed because of versions conflict, then try below inst
 ![File](assets/frame.png)
 
 <details>
-<summary><span style="font-weight: bold;">File notice.</span></summary>
+<summary><span style="font-weight: bold;">File notice:</span></summary>
 
-  - files in geometrylab folder are basic, nothing need to be changed.
+  - **geometrylab/**  
+    Contains only foundational files; **do not modify**.
 
-  - archgeolab/archgeometry: meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> guidedprojection_orthonet.py --> opt_gui_orthonet.py --> readfile_orthonet.py
+  - **archgeolab/archgeometry** module order 
 
-  - run readfile_orthonet.py to test how it works; a GUI window will be opened
-  
-  - The GUI settings are in opt_gui_orthonet.py
-  
-  - The constraints settings are in guidedprojection_orthonet.py
+    meshpy.py --> quadrings.py --> gridshell_new.py --> gui_basic.py --> dos_3_opt.py --> dos_2_gui.py --> dos_1_readfile.py
 
-  - if you want to add a new optimization project, please refer to archgeolab; You can create a new folder similar to the folder 'archgeolab'. Then the mesh geometry, optimization and GUI will be based on the files in geometrylab folder.
+  - **Quick start**  
+    Run `dos_1_readfile.py` to launch the GUI and verify functionality.
+
+  - **GUI settings**  
+    Adjust in `dos_2_gui.py`.
+
+  - **Optimization constraints**  
+    Configure in `dos_3_opt.py`.
+
+  - **Adding a new project**  
+    1. Create a new folder (e.g., `myproject/`) alongside `archgeolab/`.  
+    2. Reuse `geometrylab/` utilities for mesh geometry, optimization, and GUI.
 
 </details>
 <br>
@@ -167,7 +175,7 @@ This implementation primarily addresses optimization problems involving quad mes
 ## Contributions
 
 <!-- ### Project Background and Evolution -->
-ArchGeo, initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en), originated from TU Wien's research in architectural geometry and has since evolved through projects at KAUST and Xi'an Jiaotong University. This journey has resulted in around 20 high-quality academic publications.
+ArchGeo, initially developed by [Davide Pellis](https://scholar.google.com/citations?user=JnocFM4AAAAJ&hl=en), originated from TU Wien's research in Architectural Geometry and has since evolved through projects at KAUST and Xi'an Jiaotong University. This journey has resulted in around 20 high-quality academic publications.
 Its core algorithms can be integrated with Rhino3D's Grasshopper plugin, significantly aiding in the design of [large-scale grid shells](https://github.com/WWmore/compute.rhino3d). This integration exemplifies ArchGeo's pivotal role in advancing geometric design and construction.
 
 <!-- ### Features and User Benefits -->
