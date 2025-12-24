@@ -42,8 +42,8 @@ if __name__ == '__main__':
     # snet = a + r'/obj_snet'
     # equ = a +r'/obj_equilibrium'
     
-    #file = pq + r'/conical1.obj' #heart.obj
-    file = anet + r'/knet1.obj'
+    file = pq + r'/heart.obj' #
+    #file = anet + r'/knet1.obj'
     #file = snet + r'/cmc1.obj'
     #file = equ + r'/quad_dome.obj'
     

@@ -534,24 +534,24 @@ class OrthoNet(GeolabComponent):
     @on_trait_change('fair01')
     def set_fairness_01(self):
         self.mesh_fairness = self.boundary_fairness = 0.01
-        self.corner_fairness = 0.01
+        #self.corner_fairness = 0.01
         self.tangential_fairness = self.spring_fairness = 0.01
     @on_trait_change('fair001')
     def set_fairness_001(self):
         self.mesh_fairness = self.boundary_fairness = 0.005
-        self.corner_fairness = 0.005
+        #self.corner_fairness = 0.005
         self.tangential_fairness = self.spring_fairness = 0.0000
         self.fairness_diagmesh = 0.003
     @on_trait_change('fair0001')
     def set_fairness_0001(self):
         self.mesh_fairness = self.boundary_fairness = 0.0005
-        self.corner_fairness = 0.0008
+        #self.corner_fairness = 0.0008
         self.tangential_fairness = self.spring_fairness = 0.0000
         self.fairness_diagmesh = 0.0005
     @on_trait_change('fair0')
     def set_fairness_0(self):
         self.mesh_fairness = self.boundary_fairness = 0
-        self.corner_fairness = 0
+        #self.corner_fairness = 0
         self.tangential_fairness = self.spring_fairness =  0
         self.fairness_diagmesh = 0
         self.fairness_4diff = 0
