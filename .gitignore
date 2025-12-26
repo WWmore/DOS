@@ -5,3 +5,4 @@
 *.ini
 archgeolab/constraints/__pycache__/constraints_glide.cpython-39.pyc
 *.pyc
+.DS_Store
