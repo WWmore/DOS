@@ -10,7 +10,7 @@ import numpy as np
 
 import scipy
 #------------------------------------------------------------------------------
-from geometrylab.geometry.meshprimitives import mesh_sphere
+from geometrylab.geometry.meshprimitives import mesh_sphere, mesh_Disc
 # -----------------------------------------------------------------------------
 """
 vs_sphere_equation
@@ -144,4 +144,51 @@ def get_sphere_packing(C,r,Fa=20,Fv=20):
         M0.halfedges = np.vstack((M0.halfedges, half))
     M0.topology_update()
     return M0
+
+
+
+
+#------------------------------------------------------------------------------
+#                                 Discs
+#------------------------------------------------------------------------------
+
+
+def disc_packing(mesh_plane_shadow, N=[0,0,1],Fa=20,Fv=20): ##Hui: refer to cone_packing
+    P = mesh_plane_shadow.vertices
+    radii = mesh_plane_shadow.vertex_ring_vertices_lengths()
+    M0 = mesh_Disc(P[0], radii[0], N, Fa, Fv)
+    num = len(radii)
+    for i in range(num-1):
+        Si = mesh_Disc(P[i+1],radii[i+1], N, Fa=Fa,Fv=Fv)
+        half = Si.halfedges
+        V,E,F = Si.V, Si.E, Si.F
+        M0.vertices = np.vstack((M0.vertices, Si.vertices))
+        half[:,0] += (i+1)*V
+        half[:,1] += (i+1)*F
+        half[:,2] += (i+1)*2*E
+        half[:,3] += (i+1)*2*E
+        half[:,4] += (i+1)*2*E
+        half[:,5] += (i+1)*2*E
+        M0.halfedges = np.vstack((M0.halfedges, half))
+    M0.topology_update()
+    return M0
+
+
+
+    # @on_trait_change('show_discs')
+    # def plot_circular_discs(self):
+    #     name = 'disc'
+    #     if self.show_discs:
+    #         shadow = mesh_plane_shadow(self.mesh,light_direction=[0,0,2])
+    #         disc = disc_packing(shadow, Fa=20, Fv=20)
+    #         show = Faces(disc,smooth=True,shading=True,
+    #                      color=(0,153,204),opacity=0.8,glossy=1, 
+    #                      name=name)
+    #         self.meshmanager.add([show])
+    #     else:
+    #         self.meshmanager.remove(name)
+
+
+
+
 

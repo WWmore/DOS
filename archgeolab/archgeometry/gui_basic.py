@@ -11,7 +11,7 @@ import sys
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 sys.path.append(path)
-#print(path)
+#print(path) ##/Users/wanghui/Github/DIN
 
 from traits.api import Instance,String,on_trait_change, Bool, Int,List
 
@@ -39,8 +39,6 @@ from geometrylab.gui.handler import Handler
 
 from geometrylab.gui.tools import IncrementalRemesh,CornerTolerance,Loads,SaveMesh
 
-#from geometrylab.optimization.gridshell import Gridshell ##Hui comment
-##Hui: super on geometrylab/optimization/Gridshell()
 from archgeolab.archgeometry.gridshell_new import GridshellNew
 
 # -----------------------------------------------------------------------------
@@ -125,6 +123,10 @@ class GlHandler(Controller):
 
     def clear(self):  # Hui
         self.info.object.clear()
+        
+    def shadow(self):  # Hui
+        self.info.object.shadow()
+
     #--------------------------------------------------------------------------
     #                                 Mesh Edit
     #--------------------------------------------------------------------------
@@ -380,6 +382,12 @@ class GeolabGUI(MultiSceneManager):
                         style='push',
                         tooltip = 'Clear ploting',
                         show_label=False)
+
+    shadow_button = Action(action='shadow',  # Hui
+                        image=ImageResource(path+'/spotlight.png'),
+                        style='push',
+                        tooltip = 'Cast shadow',
+                        show_label=False)
     
     __toolbar = [Separator(),
                  plot_manager_button,
@@ -419,6 +427,7 @@ class GeolabGUI(MultiSceneManager):
                  start_mesh_button, # Hui
                  
                  Separator(),
+                 shadow_button,    # Hui
                  background_switch_button,
                  ]
 
@@ -622,6 +631,9 @@ class GeolabGUI(MultiSceneManager):
 
     def clear(self): # Hui ## can't clear current obj
         self.remove(names='startmesh')
+        self.remove(names='shadow')
+        self.remove(names='shadow2')
+        self.remove(names='shadow3')
         #self.clear_scene()
         #self.current_object.update_plot()
 
@@ -645,6 +657,64 @@ class GeolabGUI(MultiSceneManager):
         #MeshPlotManager.plot_faces(self.get_object(name), color = 'w')
         MeshPlotManager.plot_edges(self.get_object(name),tube_radius=0.5*r,color = 'black')
         MeshPlotManager.update_plot(self.current_object)
+        
+    def shadow(self): # Hui
+        from geometrylab.utilities.intersect import mesh_plane_shadow  # Hui:copy from AG/archgeolab/gui_basic.py; but update file position
+        from archgeolab.archgeometry.convexhull import build_tri_mesh_from_centroid_and_convex_hull
+        from geometrylab.geometry.meshpy import Mesh
+        import numpy as np
+
+        mesh = self.current_object.geometry
+        shadow = mesh_plane_shadow(mesh,light_direction=[0,0,2])#[1,-1,1])
+
+        "compute convex hull"
+        
+        vertices, faces = build_tri_mesh_from_centroid_and_convex_hull(shadow.vertices)
+        disc = Mesh()
+        disc.make_mesh(vertices, faces)
+        # 5. 添加Mesh对象到当前场景
+        self.add_object(disc, name='shadow3')
+        
+        
+        vertex_value = np.ones(disc.V, dtype=np.float64)
+        inn_vertices = disc.inner_vertices()
+        bdry_vertices = disc.boundary_vertices()
+
+        if len(bdry_vertices) > 0 and len(inn_vertices) > 0:
+                # 计算每个顶点到边界的距离（用于平滑插值，实现羽化效果）
+                dist_to_bdry = np.zeros(disc.V)
+                # 遍历每个内部顶点，计算到最近边界顶点的欧氏距离
+                for v_idx in inn_vertices:
+                    v_coord = disc.vertices[v_idx]
+                    bdry_coords = disc.vertices[bdry_vertices]
+                    # 计算距离
+                    dists = np.linalg.norm(bdry_coords - v_coord, axis=1)
+                    dist_to_bdry[v_idx] = np.min(dists)
+        
+                # 归一化距离（0~1范围）
+                max_dist = np.max(dist_to_bdry)
+                min_dist = np.min(dist_to_bdry)
+                if max_dist - min_dist > 1e-6:  # 避免除零
+                    dist_to_bdry = (dist_to_bdry - min_dist) / (max_dist - min_dist)
+                else:
+                    dist_to_bdry = np.zeros_like(dist_to_bdry)
+        
+                # 基于距离赋值：距离越大（越靠近中心），标量值越接近1；越靠近边界，越接近0.9（可调整）
+                # 平滑插值公式：实现从中心1到边界0.9的渐变，避免生硬跳跃
+                vertex_value = 1.0 - (1.0 - 0.9) * dist_to_bdry
+        else:
+            # 若无边界/内部顶点，默认赋值（兼容异常情况）
+            vertex_value[bdry_vertices] = 0.5 if len(bdry_vertices) > 0 else 0.7
+
+        # 6. 调用 plot_faces 实现颜色渐变+边缘羽化（核心优化）
+        MeshPlotManager.plot_faces(self.get_object('shadow3'),
+                                   color='black-white',  # 灰度LUT，1对应黑色（中心深），0.9对应浅灰（边缘浅）
+                                   vertex_data=vertex_value,  # 传入平滑渐变的顶点标量值，驱动颜色渐变
+                                   lut_range=[0.85, 1.0],  # 锁定LUT范围，放大渐变效果（避免标量值差异过小导致无效果）###0.85darker than 0.8
+                                   opacity=1,  # 基础透明度，配合颜色渐变实现羽化
+                                   edge_visibility=False,  # 隐藏边缘，使羽化效果更自然
+                                   shading=False  # 关闭光照，保持阴影平面感（可选，根据需求调整）
+    )
     #--------------------------------------------------------------------------
     #                                  Tools
     #--------------------------------------------------------------------------
