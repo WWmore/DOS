@@ -28,8 +28,10 @@ from geometrylab.vtkplot.vectorsource import Vectors
 
 '''-'''
 
-__author__ = 'Davide Pellis'
+__author__ = 'Davide Pellis, Hui Wang'
 
+
+##Hui update "is not" --> "!=", is --> ==; veretx_data --> vertex_data; plot_faces()
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -94,6 +96,8 @@ class MeshPlotManager(PlotManager):
         self.__dimensions = (0,0,0)
 
         self.__counter = 0
+        
+        self._opacity = 1 ##Hui add
 
     # -------------------------------------------------------------------------
     #                              Properties
@@ -109,7 +113,7 @@ class MeshPlotManager(PlotManager):
 
     @mesh.setter
     def mesh(self, mesh):
-        if mesh.type is not 'Mesh':
+        if mesh.type != 'Mesh':
             raise ValueError('*mesh* attribute must be a Mesh!')
         self._mesh = mesh
         self._set_r()
@@ -124,7 +128,7 @@ class MeshPlotManager(PlotManager):
 
     @geometry.setter
     def geometry(self, mesh):
-        if mesh.type is not 'Mesh':
+        if mesh.type != 'Mesh':
             raise ValueError('*geometry* attribute must be a Mesh!')
         self.mesh = mesh
 
@@ -255,7 +259,7 @@ class MeshPlotManager(PlotManager):
         PlotManager.update_plot(self, **kwargs)
         self.plot_selected_vertices()
 
-    def plot_faces(self, **kwargs):
+    def plot_faces(self, **kwargs): ##Hui update to be compatible with opacity
         clear = False
         if 'name' not in kwargs:
             kwargs['name'] = 'faces'
@@ -263,8 +267,14 @@ class MeshPlotManager(PlotManager):
             self._face_sources.append(kwargs['name'])
         if 'color' not in kwargs:
             kwargs['color'] = self.face_color
+        
+        if 'opacity' in kwargs: ##Hui add
+            self._opacity = kwargs['opacity']
+        else:                   ##Hui add
+            kwargs['opacity'] = self._opacity
+        
         if 'face_data' in kwargs:
-            if self.__face_data is not 'face':
+            if self.__face_data != 'face':
                 clear = True
             if self.record:
                 kwargs['face_data'] = self.face_data
@@ -272,18 +282,21 @@ class MeshPlotManager(PlotManager):
                 self.face_data = kwargs['face_data']
             self.__face_data = 'face'
         elif 'vertex_data' in kwargs:
-            if self.__face_data is not 'vertex':
+            if self.__face_data != 'vertex':
                 clear = True
             if self.record:
                 kwargs['vertex_data'] = self.vertex_data
             else:
-                self.veretx_data = kwargs['vertex_data']
+                self.vertex_data = kwargs['vertex_data']
             self.__face_data = 'vertex'
+        
         if kwargs['name'] not in self.sources or not self.updating or clear:
             F = Faces(self.mesh, **kwargs)
             self.add(F)
         else:
             self.update(**kwargs)
+            
+        
 
     def plot_edges(self, **kwargs):
         clear = False
@@ -294,7 +307,7 @@ class MeshPlotManager(PlotManager):
         else:
             self._edge_sources.append(kwargs['name'])
         if 'tube_radius' not in kwargs:
-            if self.view_mode is 'wireframe':
+            if self.view_mode == 'wireframe':
                 tube_radius = None
             elif self.view_mode == '3d':
                 tube_radius = None
@@ -304,7 +317,7 @@ class MeshPlotManager(PlotManager):
         if 'color' not in kwargs:
             kwargs['color'] = self.edge_color
         if 'edge_data' in kwargs:
-            if self.__edge_data is not 'edge':
+            if self.__edge_data != 'edge':
                 clear = True
             if self.record:
                 kwargs['edge_data'] = self.edge_data
@@ -312,12 +325,12 @@ class MeshPlotManager(PlotManager):
                 self.edge_data = kwargs['edge_data']
             self.__edge_data = 'edge'
         elif 'vertex_data' in kwargs:
-            if self.__edge_data is not 'vertex':
+            if self.__edge_data != 'vertex':
                 clear = True
             if self.record:
                 kwargs['vertex_data'] = self.vertex_data
             else:
-                self.veretx_data = kwargs['vertex_data']
+                self.vertex_data = kwargs['vertex_data']
             self.__edge_data = 'vertex'
         if kwargs['name'] not in self.sources or not self.updating or clear:
             M = Edges(self.mesh, **kwargs)
@@ -569,7 +582,7 @@ class MeshPlotManager(PlotManager):
                 return
             v = p_id // 6
             self.selected_vertices = [v]
-            if vertex_callback is not None:
+            if vertex_callback != None:
                 vertex_callback(v)
             self.virtual_vertices_on()
 
@@ -637,7 +650,7 @@ class MeshPlotManager(PlotManager):
                 return
             e = cell_id
             self.selected_edges = [e]
-            if edge_callback is not None:
+            if edge_callback != None:
                 edge_callback(e)
             self.virtual_edges_on()
 
@@ -675,7 +688,7 @@ class MeshPlotManager(PlotManager):
                 return
             f = cell_id
             self.selected_faces = [f]
-            if face_callback is not None:
+            if face_callback != None:
                 face_callback(f)
             self.virtual_faces_on()
 
@@ -731,13 +744,13 @@ class MeshPlotManager(PlotManager):
             center = np.array([c[0],c[1],c[2]])
             self.mesh.vertices[vertex_index,:] = center
             self.update('widget-point', points = center)
-            if interaction_callback is not None:
+            if interaction_callback != None:
                 interaction_callback()
 
         S.add_observer("InteractionEvent", i_callback)
 
         def e_callback(obj, event):
-            if end_callback is not None:
+            if end_callback != None:
                 end_callback()
             self.virtual_vertices_on()
             point = self.mesh.vertices[vertex_index]
@@ -764,7 +777,7 @@ class MeshPlotManager(PlotManager):
                 return
             v = p_id//6
             self.selected_vertices = [v]
-            if start_callback is not None:
+            if start_callback != None:
                 try:
                     start_callback()
                 except:

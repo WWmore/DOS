@@ -28,8 +28,8 @@ from geometrylab.vtkplot import plotutilities
 
 '''facesource.py: The mesh faces plot source class'''
 
-__author__ = 'Davide Pellis'
-
+__author__ = 'Davide Pellis, Hui Wang'
+##Hui: update opacity
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -172,10 +172,19 @@ class Faces(object):
             self._surface.actor.property.edge_color = edge_color
         if not self._shading:
             self._surface.actor.actor.property.lighting = False
-        if type(self._opacity) == int or type(self._opacity) == float:
-            if self._opacity < 1:
-                self._surface.actor.actor.property.specular = 0.8
-                self._surface.actor.actor.force_opaque = self._force_opaque
+            
+        if 0:  ##Hui comment
+            if type(self._opacity) == int or type(self._opacity) == float:
+                if self._opacity < 1:
+                    self._surface.actor.actor.property.specular = 0.8
+                    self._surface.actor.actor.force_opaque = self._force_opaque
+        else:  ##Hui add
+            self._surface.actor.actor.property.opacity = self._opacity
+            if type(self._opacity) == int or type(self._opacity) == float:
+                if self._opacity < 1:
+                    self._surface.actor.actor.property.specular = 0.8
+                    self._surface.actor.actor.force_opaque = self._force_opaque
+                
         self._surface.actor.actor.property.specular = min(self._glossy, 1)
         sp = 21.*self._specular*self._glossy
         self._surface.actor.actor.property.specular_power = sp + 0.001
@@ -288,6 +297,16 @@ class Faces(object):
         sp = 21.*self._specular*self._glossy
         self._surface.actor.actor.property.specular_power = sp + 0.001
 
+
+    def _update_opacity(self, **kwargs): ##Hui add
+        self._opacity = kwargs.get('opacity', self._opacity)
+        self._surface.actor.actor.property.opacity = self._opacity
+        if type(self._opacity) == int or type(self._opacity) == float:
+            if self._opacity < 1:
+                self._surface.actor.actor.property.specular = 0.8
+                self._surface.actor.actor.force_opaque = self._force_opaque
+            else:
+                self._surface.actor.actor.property.specular = self._glossy
     # -------------------------------------------------------------------------
     #
     # -------------------------------------------------------------------------
@@ -296,6 +315,7 @@ class Faces(object):
         self._update_data(**kwargs)
         self._update_lut_range(**kwargs)
         self._update_color(**kwargs)
+        self._update_opacity(** kwargs)  ##Hui add
         self._update_glossy(**kwargs)
         self.source.update()
 

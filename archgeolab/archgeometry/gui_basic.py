@@ -654,8 +654,8 @@ class GeolabGUI(MultiSceneManager):
         # self.add_object(mesh, name = name)
         self.add_object(obj, name = name)
         r = self.current_object.r
-        #MeshPlotManager.plot_faces(self.get_object(name), color = 'w')
-        MeshPlotManager.plot_edges(self.get_object(name),tube_radius=0.5*r,color = 'black')
+        #MeshPlotManager.plot_faces(self.get_object(name), color = 'w',opacity=0.4)
+        MeshPlotManager.plot_edges(self.get_object(name),tube_radius=0.5*r,color='black')
         MeshPlotManager.update_plot(self.current_object)
         
     def shadow(self): # Hui
@@ -672,7 +672,6 @@ class GeolabGUI(MultiSceneManager):
         vertices, faces = build_tri_mesh_from_centroid_and_convex_hull(shadow.vertices)
         disc = Mesh()
         disc.make_mesh(vertices, faces)
-        # 5. 添加Mesh对象到当前场景
         self.add_object(disc, name='shadow3')
         
         
@@ -711,10 +710,11 @@ class GeolabGUI(MultiSceneManager):
                                    color='black-white',  # 灰度LUT，1对应黑色（中心深），0.9对应浅灰（边缘浅）
                                    vertex_data=vertex_value,  # 传入平滑渐变的顶点标量值，驱动颜色渐变
                                    lut_range=[0.85, 1.0],  # 锁定LUT范围，放大渐变效果（避免标量值差异过小导致无效果）###0.85darker than 0.8
-                                   opacity=1,  # 基础透明度，配合颜色渐变实现羽化
+                                   opacity=0.5,  # 基础透明度，配合颜色渐变实现羽化
                                    edge_visibility=False,  # 隐藏边缘，使羽化效果更自然
-                                   shading=False  # 关闭光照，保持阴影平面感（可选，根据需求调整）
-    )
+                                   shading=False)  # 关闭光照，保持阴影平面感（可选，根据需求调整）
+
+
     #--------------------------------------------------------------------------
     #                                  Tools
     #--------------------------------------------------------------------------
