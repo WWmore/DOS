@@ -48,7 +48,7 @@ def normal_constraints(**kwargs): ## replaced by Hui's constraint
     H = sparse.coo_matrix((data,(i,j)), shape=(F, N))
     r = ((X[f]**2 + X[F+f]**2 + X[2*F+f]**2) + 1) * w
     #self.add_iterative_constraint(H, r, 'face_normal_length')
-    print('n:', np.sum(np.square((H*X)-r)))
+    #print('n:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def planarity_constraints(**kwargs): ## replaced by Hui's constraint
@@ -73,7 +73,7 @@ def planarity_constraints(**kwargs): ## replaced by Hui's constraint
     data = 2 * np.hstack((X[v2] - X[v1], X[f], -X[f])) * w
     H = sparse.coo_matrix((data,(i,j)), shape=(K, N))
     #self.add_iterative_constraint(H, r, 'face_normal (planarity)')
-    print('pq:', np.sum(np.square((H*X)-r)))
+    #print('pq:', np.sum(np.square((H*X)-r)))
     return H,r
 
 # -------------------------------------------------------------------------
@@ -155,7 +155,7 @@ def equilibrium_constraints(**kwargs):
     r = np.hstack((rx, ry, rz)) * w
     H = sparse.coo_matrix((data,(i,j)), shape=(3*V, N))
     #self.add_iterative_constraint(H, r,'equilibrium')
-    print('eq:', np.sum(np.square((H*X)-r)))
+    #print('eq:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def edge_length_constraints(**kwargs):
@@ -182,7 +182,7 @@ def edge_length_constraints(**kwargs):
     data = 2 * np.hstack((X[v1] - X[v2], X[v2] - X[v1], -X[e])) * w
     H = sparse.coo_matrix((data,(i,j)), shape=(E, N))
     #self.add_iterative_constraint(H, r, 'edge_length')
-    print('el:', np.sum(np.square((H*X)-r)))
+    #print('el:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def boundary_densities_constraints(**kwargs):
@@ -210,7 +210,7 @@ def boundary_densities_constraints(**kwargs):
     r = X[j]**2 * w
     H = sparse.coo_matrix((data,(i,j)), shape=(W,N))
     #self.add_constant_constraint(H, r, 'boundary_equilibrium')
-    print('bdry:', np.sum(np.square((H*X)-r)))
+    #print('bdry:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def compression_constraints(w, **kwargs):
@@ -232,7 +232,7 @@ def compression_constraints(w, **kwargs):
     H = sparse.coo_matrix((data,(i,j)), shape=(E,N))
     r = X[N1+2*E+e]**2 * abs(w)
     #self.add_iterative_constraint(H, r, 'compression')
-    print('sqrt:', np.sum(np.square((H*X)-r)))
+    #print('sqrt:', np.sum(np.square((H*X)-r)))
     return H, r
 
 
@@ -263,7 +263,7 @@ def area_constraints(**kwargs):
     data = np.hstack((data1, data2)) * w
     H = sparse.coo_matrix((data,(i,j)), shape=(3*F, N))
     #self.add_iterative_constraint(H, r, 'face_vector_area')
-    print('a1:', np.sum(np.square((H*X)-r)))
+    #print('a1:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def vector_area_constraints(**kwargs):
@@ -283,7 +283,7 @@ def vector_area_constraints(**kwargs):
     H = sparse.coo_matrix((data,(i,j)), shape=(F, N))
     r = (X[f]**2 + X[F+f]**2 + X[2*F+f]**2 - X[3*F+f]**2) * w
     #self.add_iterative_constraint(H, r, 'face_area')
-    print('a2:', np.sum(np.square((H*X)-r)))
+    #print('a2:', np.sum(np.square((H*X)-r)))
     return H,r
 
 # -------------------------------------------------------------------------
@@ -310,5 +310,5 @@ def fixed_boundary_normals_constraints(**kwargs): #not necessary, may not be use
     H = sparse.coo_matrix((data,(i,j)), shape=(W,N))
     r = np.hstack((X[nx],X[ny],X[nz])) * w
     #self.add_constant_constraint(H, r, 'fixed_boundary_normals')
-    print('fix:', np.sum(np.square((H*X)-r)))
+    #print('fix:', np.sum(np.square((H*X)-r)))
     return H, r

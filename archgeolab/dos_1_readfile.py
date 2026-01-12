@@ -40,11 +40,15 @@ if __name__ == '__main__':
     pq = a + r'/obj_pq'
     anet = a + r'/obj_anet'
     # snet = a + r'/obj_snet'
-    equ = a +r'/obj_equilibrium'
     
     file = pq + r'/heart.obj' #
     #file = anet + r'/knet1.obj'
     #file = snet + r'/cmc1.obj'
+
+    
+    
+    "if equilibrium: self._constrained_vertices = 'boundary' in gridshell_new.py "
+    equ = a +r'/obj_equilibrium'
     file = equ + r'/M2_eq_quad2_orthoEqu.obj' ##quad_dome
     file = equ + r'/quad_dome.obj'
 
