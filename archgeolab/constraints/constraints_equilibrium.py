@@ -21,7 +21,8 @@ edge_length_constraints
 equilibrium_constraints,
 compression_constraints,
 area_constraints,
-vector_area_constraints
+vector_area_constraints,
+circularity_constraints
 
 boundary_densities_constraints
 fixed_boundary_normals_constraints
@@ -154,7 +155,7 @@ def equilibrium_constraints(**kwargs):
     r = np.hstack((rx, ry, rz)) * w
     H = sparse.coo_matrix((data,(i,j)), shape=(3*V, N))
     #self.add_iterative_constraint(H, r,'equilibrium')
-    #print('eq:', np.sum(np.square((H*X)-r)))
+    print('eq:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def edge_length_constraints(**kwargs):
@@ -181,7 +182,7 @@ def edge_length_constraints(**kwargs):
     data = 2 * np.hstack((X[v1] - X[v2], X[v2] - X[v1], -X[e])) * w
     H = sparse.coo_matrix((data,(i,j)), shape=(E, N))
     #self.add_iterative_constraint(H, r, 'edge_length')
-    #print('el:', np.sum(np.square((H*X)-r)))
+    print('el:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def boundary_densities_constraints(**kwargs):
@@ -209,7 +210,7 @@ def boundary_densities_constraints(**kwargs):
     r = X[j]**2 * w
     H = sparse.coo_matrix((data,(i,j)), shape=(W,N))
     #self.add_constant_constraint(H, r, 'boundary_equilibrium')
-    #print('bdry:', np.sum(np.square((H*X)-r)))
+    print('bdry:', np.sum(np.square((H*X)-r)))
     return H,r
 
 def compression_constraints(w, **kwargs):

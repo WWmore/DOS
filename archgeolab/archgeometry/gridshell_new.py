@@ -49,7 +49,7 @@ class GridshellNew(MMesh):  # Hui
         #Mesh.__init__(self)
         MMesh.__init__(self)  # Hui
 
-        self._constrained_vertices = None #'boundary' ##Hui comment, otherwise bdry are glided
+        self._constrained_vertices = None #'boundary' ##Hui comment, otherwise bdry are glided ##TODO
 
         self._gliding_vertices = 'constrained'
 

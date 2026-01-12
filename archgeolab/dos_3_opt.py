@@ -40,8 +40,6 @@ class GP_OrthoNet(GuidedProjectionBase):
     _N2 = 0
 
     _N3 = 0
-
-    _N4 = 0
     
     _N5 = 0
     
@@ -96,7 +94,7 @@ class GP_OrthoNet(GuidedProjectionBase):
 
         'fixed_corners' : 0,
 
-        'gliding' : 0, # Huinote: glide on boundary, used for itself boundary
+        'gliding' : 1,
 
         'equilibrium' : 0,
         
@@ -243,7 +241,7 @@ class GP_OrthoNet(GuidedProjectionBase):
         F = self.mesh.F
         E = self.mesh.E
         N = 3*V
-        N1 = N2 = N3 = N4 = N5 = N
+        N1 = N2 = N3 = N5 = N
         num_regular = self.mesh.num_regular
 
         Nanet = N
@@ -253,15 +251,15 @@ class GP_OrthoNet(GuidedProjectionBase):
         if self.get_weight('planarity') != 0:
             "X += [Nx,Ny,Nz]"
             N += 3*F
-            N1 = N2 = N3 = N4 = N
+            N1 = N2 = N3 = N
         if self.get_weight('equilibrium') != 0:
             "X += [edge_length, force_density, sqrt_force_density]"
             N += 3*E
-            N2 = N3 = N4 = N
+            N2 = N3 = N
         if self.get_weight('area') != 0:
             "X += [Ax,Ay,Az, area]"
             N += 4*F
-            N3 = N4 = N
+            N3 = N
 
         if self.get_weight('unit_edge_vec'): #Gnet, AGnet
             "X+=[le1,le2,le3,le4,ue1,ue2,ue3,ue4]"
@@ -296,7 +294,7 @@ class GP_OrthoNet(GuidedProjectionBase):
         #---------------------------------------------
         if N1 != self._N1 or N2 != self._N2:
             self.reinitialize = True
-        if N3 != self._N3 or N4 != self._N4:
+        if N3 != self._N3:
             self.reinitialize = True
         if self._N2 - self._N1 == 0 and N2 - N1 > 0:
             self.mesh.reinitialize_densities()
@@ -317,7 +315,6 @@ class GP_OrthoNet(GuidedProjectionBase):
         self._N1 = N1
         self._N2 = N2
         self._N3 = N3
-        self._N4 = N4
         self._N5 = N5
         self._Nanet = Nanet
         self._Nsnet,self._Ns_n,self._Ns_r = Nsnet,Ns_n,Ns_r
@@ -629,7 +626,6 @@ class GP_OrthoNet(GuidedProjectionBase):
         self.add_weight('N1', self._N1)
         self.add_weight('N2', self._N2)
         self.add_weight('N3', self._N3)
-        self.add_weight('N4', self._N4)
         self.add_weight('N5', self._N5)
         self.add_weight('Nanet', self._Nanet)
         self.add_weight('Nsnet', self._Nsnet)

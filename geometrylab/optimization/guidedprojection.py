@@ -102,7 +102,7 @@ class GuidedProjection(GuidedProjectionBase):
 
         'fixed_corners' : 0,
 
-        'gliding' : 0, # Huinote: glide on boundary, used for itself boundary
+        'gliding' : 1, # Huinote: glide on boundary, used for itself boundary ##old is 1, new is 0
 
         'reference_closeness' : 0,
 

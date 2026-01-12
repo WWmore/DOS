@@ -854,6 +854,14 @@ class OrthoNet(GeolabComponent):
     #                      Orthogonal NET: Weights + Plotting:
     # -------------------------------------------------------------------------
 
+    @on_trait_change('equilibrium')
+    def opt_equilibrium(self):
+        if self.equilibrium:
+            self.constrained_vertices = 'boundary'
+        else:
+            self.constrained_vertices = None
+    
+
     @on_trait_change('button_clear_constraint')
     def set_clear_webs(self):
         self.planarity = False

@@ -188,19 +188,24 @@ class Polyline(object):
 
     def _update_data(self, **kwargs):
         if True:
-            self._polyline = kwargs.get('polyline', self._polyline)
+            self._polyline = kwargs.get('polyline', self._polyline)#Hui add
             if self._polyline.type == 'Circle':
                 self._polyline.sampling = self._sampling
                 self._polyline.make_vertices()
             points = self._polyline.vertices
-            cells = self._polyline.cell_array()
+        try:
+            cells = self._polyline.cell_array() #Hui: relate with definition of cell_array() in polyline.py
+        except:
+            cells = self._polyline.cell_array
             N = cells.shape[0]
             cell_array = tvtk.CellArray()
             cell_array.set_cells(N, cells)
             cell_array = tvtk.CellArray()
             cell_array.set_cells(self._polyline.E, cells)
-            self._data.lines=cell_array
-            self._data.points=points
+            # self._data.set(lines=cell_array)   ##Hui comment
+            # self._data.set(points=points)      ##Hui comment
+            self._data = tvtk.PolyData(points=points, lines=cell_array) ##Hui update
+            
         self._edge_data = kwargs.get('edge_data', None)
         self._vertex_data = kwargs.get('vertex_data', None)
         if self._edge_data is not None:
